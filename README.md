@@ -8,7 +8,7 @@ A Windows-first desktop image comparison tool for anime encoders. Built with Tau
 
 ## Development
 
-Requires Node.js 22.12+ (or a compatible newer release), Rust 1.89+, Windows C++ Build Tools and WebView2. On Linux, install Tauri's WebKitGTK 4.1 development prerequisites.
+Requires Node.js 22.12+ (or a compatible newer release), Rust 1.98+, NASM 2.14+, Windows C++ Build Tools and WebView2. On Linux, install NASM and Tauri's WebKitGTK 4.1 development prerequisites. Rust 1.98 is required by the native AVIF decoder; the application uses edition 2024.
 
 ```sh
 npm ci

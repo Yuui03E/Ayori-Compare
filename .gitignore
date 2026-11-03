@@ -19,5 +19,6 @@ Thumbs.db
 # Large personal frame sets and generated comparison exports
 /local-fixtures/
 /exports/
+/.tools/
 
 # Keep package-lock.json and Cargo.lock tracked when they are created.
