@@ -23,8 +23,6 @@ rayon = "1.10"
 regex = "1.11"
 notify = "8"
 base64 = "0.22"
-zune-core = "0.5"
-zune-png = "0.5"
 image = { version = "0.25", default-features = false, features = ["webp", "jpeg", "png"] }
 avif-decode = { version = "3", default-features = false }
 avif-parse = "2.1"
@@ -33,9 +31,14 @@ tokio = { version = "1", features = ["sync"] }
 flate2 = "1"
 tempfile = "3"
 
-[profile.dev.package.zune-png]
+[dev-dependencies]
+png = "0.18"
+
+[profile.dev.package.png]
 opt-level = 3
-[profile.dev.package.zune-inflate]
+[profile.dev.package.fdeflate]
+opt-level = 3
+[profile.dev.package.image]
 opt-level = 3
 [profile.dev.package.fast-ssim2]
 opt-level = 3
@@ -53,9 +56,9 @@ opt-level = "s"
 strip = "symbols"
 
 # Keep pixel work fast while optimizing the windowing/UI glue for executable size.
-[profile.release.package.zune-png]
+[profile.release.package.png]
 opt-level = 3
-[profile.release.package.zune-inflate]
+[profile.release.package.fdeflate]
 opt-level = 3
 [profile.release.package.zune-jpeg]
 opt-level = 3

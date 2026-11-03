@@ -15,8 +15,8 @@ This is the current handoff record. Read it before making changes and update it 
 | Step | Status | Evidence / next work |
 | --- | --- | --- |
 | 0. Requirements and Git | Complete | Both source documents reviewed, decisions recorded, repository initialized. |
-| 1. Foundation | Development application verified | Frontend/native builds pass; actual WebView2 app and controls verified. Final packaged launch is still unverified. |
-| 2. Renderer and precision proof | Correctness verified; performance work remains | Actual WebView2 pixels, 16-bit source data, and forced fallback pass. Decode target not yet met; isolated IPC/240 Hz evidence pending. |
+| 1. Foundation | Development and packaged launch verified | Packaged app launches on its own; native file picker imports the user's WEBP pair. Clean-machine prerequisites remain untested. |
+| 2. Renderer and precision proof | Correctness and synthetic decode target verified; other performance work remains | Exact samples and fallback pass. Four-frame PNG batch now measures 18.39 ms median / 19.17 ms p95. Isolated IPC/240 Hz evidence pending. |
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
 | 4. Inspection tools | Implemented and smoke-verified | All modes render without GL errors; identity differences, flicker, HUD lock, and pixel readout pass. Broader mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
@@ -32,7 +32,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Resume here
 
-The next step is to validate the packaged Windows executable with the development app closed. A launch attempt while the development instance was using the same app profile did not leave a running release process; investigate this instead of assuming the packaged app is verified. The user then stopped Computer Use with physical Escape. Desktop interaction was stopped; no further app input was issued.
+Packaged Windows launch and native file import are now verified with development instances closed. Continue instrumented clipboard/window checks and IPC/frame-pacing benchmarks, then rebuild the final executable with the faster PNG decoder. Do not treat the older executable as containing the latest decoder changes.
 
 After that, focus on the remaining decode/IPC/frame-pacing benchmarks, mixed-DPI hardware coverage, and Linux validation. The application and all core features already exist; do not restart scaffolding or reimplement the renderer, decoder, matching, watcher, metrics, or exporter.
 
@@ -100,8 +100,19 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 ## Outstanding acceptance work
 
 - Verify packaged Windows launch, dialogs, window controls, import and clipboard with development instances closed; test WebView2 prerequisites on a clean machine.
-- PNG batch benchmark is currently above target (38.72 ms median vs <35 ms). Measure and improve without reducing precision or dropping correctness checks.
+- PNG batch target now passes on the generated corpus; broaden representative corpus coverage and record hardware/environment limits.
 - Measure isolated IPC overhead, 240 Hz frame pacing, and total peak CPU/GPU memory. Sub-clock-resolution source-switch readings are not sufficient proof.
 - Broaden real 10/12-bit AVIF, PNG palette/low-depth, device scaling, GPU fallback, and large/mixed-aspect image coverage.
 - Run the Linux AppImage build and runtime checks on Linux. CI configuration exists but has not run.
 - npm reports two low-severity development-only findings from the Svelte Vite plugin's `deepmerge` dependency, with no published fix in the queried audit. Production dependency audit reports none.
+
+### 2026-11-04 — Packaged import and faster lossless PNG decoding
+
+- Verified standalone packaged launch with no development app running; opened the native image picker and imported the user's `1.webp` / `2.webp` pair (1920×1080). Visually verified the displayed WEB-DL frame. Window close exits the process. Clipboard confirmation and remaining controls still need instrumented verification.
+- User supplied eight WEBP images, odd numbers WEB-DL and even numbers encodes. Created ignored local copies as two source folders and four matching scenes; originals remain untouched and outside Git.
+- Added a reproducible four-thread, 5-warmup / 50-sample benchmark separating warm read+decode+RGBA, resident-input decode, file reads, and one-frame AYRI packing.
+- Baseline zune-png: 38.31 ms median / 39.83 ms p95 read+decode. Replaced it with the existing `image` / `png` decoder, optimized `png` and `fdeflate`, and used consuming RGBA conversion to avoid an extra copy. Updated Cargo.lock and removed unused zune-png.
+- Updated result: **18.39 ms median, 19.17 ms p95, 22.03 ms max** for 4×2560×1440 RGBA8 PNGs; resident decode 16.86 ms median; one-frame packet packing 1.70 ms median. Ryzen 9 9950X / Windows, warm generated corpus, ordinary background applications running. This is not a cold-cache or all-corpus guarantee.
+- All 15 Rust library tests pass. New correctness coverage verifies 1/2/4-bit grayscale, palette transparency, RGB16 and grayscale-alpha16 low bits, IDAT CRC rejection, and truncated PNGs. Dimensions are checked before full decoded-image allocation.
+- Hardware discovery: current display mode is 2560×1440 at 60 Hz on RTX 5070. WSL/Linux is not installed; genuine 240 Hz and Linux runtime evidence require an appropriate environment.
+- Next: instrument IPC and responsiveness, verify final packaged build/sharing, expand high-depth AVIF and mixed-DPI coverage.

@@ -1,6 +1,5 @@
+use image::ImageDecoder;
 use std::{fs, io::Cursor, path::Path};
-use zune_core::{bytestream::ZCursor, options::DecoderOptions, result::DecodingResult};
-use zune_png::PngDecoder;
 
 pub const MAX_PIXELS: u64 = 64 * 1024 * 1024;
 pub const MAX_FILE_BYTES: u64 = 512 * 1024 * 1024;
@@ -164,37 +163,7 @@ pub fn decode_bytes(bytes: &[u8], extension: &str) -> Result<Frame, String> {
         return Err("Image file exceeds the input limit.".into());
     }
     let ext = extension.to_ascii_lowercase();
-    let frame = if ext == "png" {
-        let options = DecoderOptions::default()
-            .png_set_add_alpha_channel(true)
-            .png_set_strip_to_8bit(false)
-            .png_set_confirm_crc(true)
-            .set_max_width(32768)
-            .set_max_height(32768);
-        let mut decoder = PngDecoder::new_with_options(ZCursor::new(bytes), options);
-        decoder.decode_headers().map_err(|e| e.to_string())?;
-        let (w, h) = decoder.dimensions().ok_or("Missing PNG dimensions.")?;
-        validate_dimensions(w as u32, h as u32)?;
-        // IHDR stores the actual encoded depth; decoder.depth() describes expanded samples.
-        let original_depth = *bytes.get(24).ok_or("Missing PNG bit depth.")? as u32;
-        let decoded = decoder.decode().map_err(|e| e.to_string())?;
-        let channels = decoder
-            .colorspace()
-            .ok_or("Missing PNG color type.")?
-            .num_components();
-        let pixels = match decoded {
-            DecodingResult::U8(v) => Pixels::U8(expand(v, channels, 255)?),
-            DecodingResult::U16(v) => Pixels::U16(expand(v, channels, 65535)?),
-            _ => return Err("Unsupported PNG sample type.".into()),
-        };
-        Frame {
-            width: w as u32,
-            height: h as u32,
-            original_depth,
-            file_size: size,
-            pixels,
-        }
-    } else if ext == "avif" {
+    let frame = if ext == "avif" {
         let parsed = avif_parse::read_avif(&mut Cursor::new(bytes)).map_err(|e| e.to_string())?;
         let metadata = parsed.primary_item_metadata().map_err(|e| e.to_string())?;
         validate_dimensions(
@@ -274,20 +243,32 @@ pub fn decode_bytes(bytes: &[u8], extension: &str) -> Result<Frame, String> {
         let mut reader = image::ImageReader::new(Cursor::new(bytes))
             .with_guessed_format()
             .map_err(|e| e.to_string())?;
+        if ext == "png" {
+            reader.set_format(image::ImageFormat::Png);
+        }
+        let is_png = reader.format() == Some(image::ImageFormat::Png);
         let mut limits = image::Limits::default();
         limits.max_image_width = Some(32768);
         limits.max_image_height = Some(32768);
         limits.max_alloc = Some(MAX_PIXELS * 8);
         reader.limits(limits);
-        let image = reader.decode().map_err(|e| e.to_string())?;
-        let (width, height) = (image.width(), image.height());
+        let decoder = reader.into_decoder().map_err(|e| e.to_string())?;
+        let (width, height) = decoder.dimensions();
         validate_dimensions(width, height)?;
-        let original_depth =
+        // Check the pixel budget before allocating the decoded image. PNG's
+        // EXPAND transform retains 16-bit samples and expands palette/low depth.
+        let image = image::DynamicImage::from_decoder(decoder).map_err(|e| e.to_string())?;
+        let decoded_depth =
             u32::from(image.color().bits_per_pixel() / u16::from(image.color().channel_count()));
-        let pixels = if original_depth > 8 {
-            Pixels::U16(image.to_rgba16().into_raw())
+        let original_depth = if is_png {
+            u32::from(*bytes.get(24).ok_or("Missing PNG bit depth.")?)
         } else {
-            Pixels::U8(image.to_rgba8().into_raw())
+            decoded_depth
+        };
+        let pixels = if decoded_depth > 8 {
+            Pixels::U16(image.into_rgba16().into_raw())
+        } else {
+            Pixels::U8(image.into_rgba8().into_raw())
         };
         Frame {
             width,
@@ -309,27 +290,119 @@ pub fn decode_bytes(bytes: &[u8], extension: &str) -> Result<Frame, String> {
     Ok(frame)
 }
 
-fn expand<T: Copy>(samples: Vec<T>, channels: usize, alpha: T) -> Result<Vec<T>, String> {
-    if channels == 4 {
-        return Ok(samples);
-    }
-    if channels == 0 || channels > 4 || !samples.len().is_multiple_of(channels) {
-        return Err("Invalid decoded channel count.".into());
-    }
-    Ok(samples
-        .chunks_exact(channels)
-        .flat_map(|p| match channels {
-            1 => [p[0], p[0], p[0], alpha],
-            2 => [p[0], p[0], p[0], p[1]],
-            _ => [p[0], p[1], p[2], alpha],
-        })
-        .collect())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use image::{ExtendedColorType, ImageEncoder, codecs::png::PngEncoder};
+
+    fn packed_png(depth: png::BitDepth, color: png::ColorType, data: &[u8]) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        {
+            let mut encoder = png::Encoder::new(&mut bytes, 4, 1);
+            encoder.set_depth(depth);
+            encoder.set_color(color);
+            if color == png::ColorType::Indexed {
+                encoder.set_palette(vec![11, 22, 33, 44, 55, 66, 77, 88, 99, 100, 110, 120]);
+                encoder.set_trns(vec![0, 64, 128, 255]);
+            }
+            encoder
+                .write_header()
+                .unwrap()
+                .write_image_data(data)
+                .unwrap();
+        }
+        bytes
+    }
+
+    #[test]
+    fn packed_grayscale_preserves_source_depth_and_expands_exactly() {
+        for (depth, packed, gray) in [
+            (png::BitDepth::One, vec![0b0101_0000], vec![0, 255, 0, 255]),
+            (png::BitDepth::Two, vec![0b0001_1011], vec![0, 85, 170, 255]),
+            (png::BitDepth::Four, vec![0x05, 0xaf], vec![0, 85, 170, 255]),
+        ] {
+            let frame = decode_bytes(
+                &packed_png(depth, png::ColorType::Grayscale, &packed),
+                "png",
+            )
+            .unwrap();
+            assert_eq!(frame.original_depth, depth as u32);
+            match frame.pixels {
+                Pixels::U8(values) => assert_eq!(
+                    values,
+                    gray.into_iter()
+                        .flat_map(|v| [v, v, v, 255])
+                        .collect::<Vec<_>>()
+                ),
+                _ => panic!("Wrong expanded depth"),
+            }
+        }
+    }
+
+    #[test]
+    fn palette_transparency_expands_without_changing_colors() {
+        let frame = decode_bytes(
+            &packed_png(png::BitDepth::Two, png::ColorType::Indexed, &[0b0001_1011]),
+            "png",
+        )
+        .unwrap();
+        assert_eq!(frame.original_depth, 2);
+        match frame.pixels {
+            Pixels::U8(values) => assert_eq!(
+                values,
+                [
+                    11, 22, 33, 0, 44, 55, 66, 64, 77, 88, 99, 128, 100, 110, 120, 255
+                ]
+            ),
+            _ => panic!("Wrong palette depth"),
+        }
+    }
+
+    #[test]
+    fn sixteen_bit_rgb_and_grayscale_alpha_keep_low_bits() {
+        for (color, samples, expected) in [
+            (
+                ExtendedColorType::Rgb16,
+                vec![1u16, 258, 65534],
+                vec![1u16, 258, 65534, 65535],
+            ),
+            (
+                ExtendedColorType::La16,
+                vec![12345u16, 54321],
+                vec![12345u16, 12345, 12345, 54321],
+            ),
+        ] {
+            let mut bytes = Vec::new();
+            let raw: Vec<_> = samples.iter().flat_map(|v| v.to_ne_bytes()).collect();
+            PngEncoder::new(&mut bytes)
+                .write_image(&raw, 1, 1, color)
+                .unwrap();
+            let frame = decode_bytes(&bytes, "png").unwrap();
+            assert_eq!(frame.original_depth, 16);
+            match frame.pixels {
+                Pixels::U16(values) => assert_eq!(values, expected),
+                _ => panic!("Precision lost"),
+            }
+        }
+    }
+
+    #[test]
+    fn png_crc_and_truncation_are_rejected() {
+        let bytes = packed_png(
+            png::BitDepth::Eight,
+            png::ColorType::Grayscale,
+            &[1, 2, 3, 4],
+        );
+        let idat = bytes.windows(4).position(|v| v == b"IDAT").unwrap();
+        let len = u32::from_be_bytes(bytes[idat - 4..idat].try_into().unwrap()) as usize;
+        let mut corrupt = bytes.clone();
+        corrupt[idat + 4 + len] ^= 1;
+        assert!(
+            decode_bytes(&corrupt, "png").is_err(),
+            "IDAT CRC must be checked"
+        );
+        assert!(decode_bytes(&bytes[..idat + 5], "png").is_err());
+    }
     #[test]
     fn rgba16_preserves_all_bits_and_packet_order() {
         let values = [0u16, 257, 258, 65535, 12345, 65534, 7, 65535];
