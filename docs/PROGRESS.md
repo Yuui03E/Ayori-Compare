@@ -6,7 +6,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 - Updated: 2026-11-04 (Asia/Dhaka).
 - Branch: `feat/desktop-app`.
-- Requirements review approved by the user. Implementation is in progress.
+- Requirements review approved by the user. Core implementation and development-app verification are complete; release qualification remains in progress.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
 
@@ -15,12 +15,12 @@ This is the current handoff record. Read it before making changes and update it 
 | Step | Status | Evidence / next work |
 | --- | --- | --- |
 | 0. Requirements and Git | Complete | Both source documents reviewed, decisions recorded, repository initialized. |
-| 1. Foundation | Development shell verified | Svelte checks/build and Cargo debug build pass; native WebView2 window launches; maximize and close verified. Final production launch remains a release check. |
+| 1. Foundation | Development application verified | Frontend/native builds pass; actual WebView2 app and controls verified. Final packaged launch is still unverified. |
 | 2. Renderer and precision proof | Correctness verified; performance work remains | Actual WebView2 pixels, 16-bit source data, and forced fallback pass. Decode target not yet met; isolated IPC/240 Hz evidence pending. |
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
 | 4. Inspection tools | Implemented and smoke-verified | All modes render without GL errors; identity differences, flicker, HUD lock, and pixel readout pass. Broader mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
-| 6. Sharing and release | Sharing verified; release checks in progress | Clipboard copy and offline HTML pass. Windows size tuning/final launch underway. Linux build workflow added but not executed. |
+| 6. Sharing and release | Sharing verified; Windows executable built | Clipboard/offline HTML pass. Optimized executable is 8,340,480 bytes. Packaged launch and Linux validation remain pending. |
 
 ## Completed steps
 
@@ -32,7 +32,11 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Resume here
 
-Complete the final Windows build/launch checks and record its size. Then focus on performance targets, mixed-resolution/DPI coverage, and Linux validation. The application and all core features already exist; do not restart scaffolding or reimplement the renderer, decoder, matching, watcher, metrics, or exporter.
+The next step is to validate the packaged Windows executable with the development app closed. A launch attempt while the development instance was using the same app profile did not leave a running release process; investigate this instead of assuming the packaged app is verified. The user then stopped Computer Use with physical Escape. Desktop interaction was stopped; no further app input was issued.
+
+After that, focus on the remaining decode/IPC/frame-pacing benchmarks, mixed-DPI hardware coverage, and Linux validation. The application and all core features already exist; do not restart scaffolding or reimplement the renderer, decoder, matching, watcher, metrics, or exporter.
+
+Current executable: `src-tauri/target/release/ayori-compare.exe`. Development command: `npm run desktop`. Development verification tools used a WebView2 debugging port of 9223. A development app and Vite server may still be running; inspect before starting duplicate instances.
 
 ### 2026-11-04 — Foundation verified
 
@@ -82,3 +86,22 @@ Complete the final Windows build/launch checks and record its size. Then focus o
 - Tests now cover PNG RGB/RGBA16/grayscale-alpha, lossless WebP, JPEG, valid AVIF, malformed AVIF worker isolation, matching ambiguity, packet validation, and physical coordinate invariants: 13 Rust tests plus 7 frontend tests.
 - Rust Clippy's strict check identified style improvements; applied its fixes and formatted Rust/TypeScript/Svelte for maintainability. Final check results will be recorded after the last build.
 - Added Windows and Linux CI definitions. They have not run remotely because this repository has no configured remote.
+
+### 2026-11-04 — Optimized executable and final checkpoint
+
+- `npm run desktop:build` succeeded after optimizing general code for size while retaining speed optimizations for image/metric libraries. Final executable: **8,340,480 bytes (8.34 MB decimal)**, satisfying the executable-size target.
+- Latest frontend build: zero Svelte errors/warnings; all 7 frontend tests pass. Rust tests: 11 unit tests plus 2 AVIF subprocess tests pass. Strict Clippy completed after applying its suggested fixes.
+- Repeated scene changes under native WebView2: started with 4 active textures, created 33 and deleted 33 over nine changes, ended with 4. This verifies resource ownership for that scenario, not a numeric process/VRAM ceiling.
+- Imported a real 16×16 AVIF alongside a 2560×1440 PNG through the native app. Both decoded without errors; SSIMULACRA2 returned a finite score with `resampled: true`, confirming the mixed-resolution reference path.
+- Earlier native and offline integration scripts pass, including exact pixels, all shader modes, real scores, sparse scenes, rapid transitions, forced 8-bit preview retaining 16-bit samples, atomic hot reload preserving view state, clipboard copying, and network-free HTML viewing.
+- The optimized executable's final GUI launch is **not verified**. It was attempted concurrently with a development instance using different WebView2 debug options, and no persistent release process was observed. Do not infer the cause without checking it.
+- User stopped Computer Use with physical Escape during the final window check. Desktop automation stopped immediately. Remaining checks are recorded above.
+
+## Outstanding acceptance work
+
+- Verify packaged Windows launch, dialogs, window controls, import and clipboard with development instances closed; test WebView2 prerequisites on a clean machine.
+- PNG batch benchmark is currently above target (38.72 ms median vs <35 ms). Measure and improve without reducing precision or dropping correctness checks.
+- Measure isolated IPC overhead, 240 Hz frame pacing, and total peak CPU/GPU memory. Sub-clock-resolution source-switch readings are not sufficient proof.
+- Broaden real 10/12-bit AVIF, PNG palette/low-depth, device scaling, GPU fallback, and large/mixed-aspect image coverage.
+- Run the Linux AppImage build and runtime checks on Linux. CI configuration exists but has not run.
+- npm reports two low-severity development-only findings from the Svelte Vite plugin's `deepmerge` dependency, with no published fix in the queried audit. Production dependency audit reports none.
