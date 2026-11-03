@@ -195,6 +195,7 @@ dependencies = [
  "avif-parse",
  "base64 0.22.1",
  "fast-ssim2",
+ "flate2",
  "image",
  "notify",
  "rayon",

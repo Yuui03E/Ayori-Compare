@@ -3,6 +3,7 @@ pub mod matrix;
 pub mod models;
 mod metrics;
 mod watcher;
+mod exporter;
 
 use models::ComparisonMatrix;
 use std::{path::Path, sync::{Arc, Mutex, atomic::{AtomicU64, Ordering}}};
@@ -71,12 +72,18 @@ async fn compute_metrics(epoch: u64, revision: u64, app: tauri::AppHandle, state
     }).await.map_err(|e| e.to_string())?
 }
 
+#[tauri::command]
+async fn export_html(path: String, state: State<'_, Backend>) -> Result<(),String> {
+    let matrix=state.matrix.lock().map_err(|e|e.to_string())?.clone().ok_or("No comparison to export.")?;
+    tauri::async_runtime::spawn_blocking(move||exporter::export(&matrix,Path::new(&path))).await.map_err(|e|e.to_string())?
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Backend::default())
-        .invoke_handler(tauri::generate_handler![import_sources, activate_scene, load_frame_binary, compute_metrics])
+        .invoke_handler(tauri::generate_handler![import_sources, activate_scene, load_frame_binary, compute_metrics, export_html])
         .run(tauri::generate_context!())
         .expect("Unable to start Ayori Compare");
 }

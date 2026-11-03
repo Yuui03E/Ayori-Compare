@@ -30,8 +30,7 @@ avif-decode = { version = "3", default-features = false }
 avif-parse = "2.1"
 fast-ssim2 = { version = "0.9", features = ["rayon"] }
 tokio = { version = "1", features = ["sync"] }
-
-[dev-dependencies]
+flate2 = "1"
 tempfile = "3"
 
 [profile.dev.package.zune-png]
