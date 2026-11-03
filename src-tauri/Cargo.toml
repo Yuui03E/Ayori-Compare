@@ -14,7 +14,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["image-png"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-clipboard-manager = "2"
 serde = { version = "1", features = ["derive"] }
@@ -49,5 +49,23 @@ opt-level = 3
 panic = "abort"
 codegen-units = 1
 lto = "fat"
-opt-level = 3
+opt-level = "s"
 strip = "symbols"
+
+# Keep pixel work fast while optimizing the windowing/UI glue for executable size.
+[profile.release.package.zune-png]
+opt-level = 3
+[profile.release.package.zune-inflate]
+opt-level = 3
+[profile.release.package.zune-jpeg]
+opt-level = 3
+[profile.release.package.fast-ssim2]
+opt-level = 3
+[profile.release.package.rav1d]
+opt-level = 3
+[profile.release.package.yuv]
+opt-level = 3
+[profile.release.package.image]
+opt-level = 3
+[profile.release.package.image-webp]
+opt-level = 3

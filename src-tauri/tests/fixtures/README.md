@@ -1,0 +1,1 @@
+`tiny.avif` is a 16×16, 8-bit 4:4:4 test image from `avif-decode` 3.0.0, `tests/data/tiny.avif` (https://github.com/kornelski/avif-decode). It is distributed under the adjacent BSD license. It is used to check valid decoding and isolation of the upstream malformed-payload abort.
