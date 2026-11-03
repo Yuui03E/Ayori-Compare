@@ -1,0 +1,23 @@
+# JavaScript dependencies and build output
+/node_modules/
+/dist/
+*.tsbuildinfo
+
+# Rust build output and generated Tauri schemas
+/target/
+/src-tauri/target/
+/src-tauri/gen/schemas/
+
+# Local settings, logs, and operating-system files
+.env
+.env.*
+!.env.example
+*.log
+Thumbs.db
+.DS_Store
+
+# Large personal frame sets and generated comparison exports
+/local-fixtures/
+/exports/
+
+# Keep package-lock.json and Cargo.lock tracked when they are created.
