@@ -90,14 +90,14 @@
     position: fixed;
     margin: 0;
     inset: auto;
-    max-width: min(330px, calc(100vw - 24px));
-    padding: 11px 14px;
+    max-width: min(290px, calc(100vw - 24px));
+    padding: 8px 10px;
     border: 1px solid #badfd72b;
-    border-radius: 8px;
+    border-radius: 6px;
     background: #15201ffc;
     color: #d3e4de;
     font:
-      11px/1.65 'Segoe UI',
+      11px/1.45 'Segoe UI',
       sans-serif;
     box-shadow: 0 7px 25px #0008;
     white-space: pre-line;

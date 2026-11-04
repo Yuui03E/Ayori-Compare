@@ -9,7 +9,11 @@ try {
   const page = browser
     .contexts()
     .flatMap((c) => c.pages())
-    .find((p) => p.url() === 'http://tauri.localhost/');
+    .find((p) =>
+      process.argv.includes('--dev')
+        ? p.url().startsWith('http://127.0.0.1:1420')
+        : p.url() === 'http://tauri.localhost/',
+    );
   assert(page, 'Start the normal packaged application with debugging on localhost:9223.');
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -44,18 +48,23 @@ try {
     await page.getByRole('textbox', { name: 'Search sources' }).fill('Release 50.');
     await page.getByRole('button', { name: 'Set source 50 as B', exact: true }).click();
     await page.getByRole('button', { name: 'View comparison', exact: true }).click();
-    await page
-      .locator('.selection')
-      .first()
-      .locator('.metadata')
-      .filter({ hasText: '640 × 360' })
-      .waitFor();
-    await page
-      .locator('.selection')
-      .nth(1)
-      .locator('.metadata')
-      .filter({ hasText: '512 × 288' })
-      .waitFor();
+    for (const [side, dimensions] of [
+      ['A', '640 × 360'],
+      ['B', '512 × 288'],
+    ]) {
+      await page.waitForFunction(
+        ({ side, dimensions }) =>
+          document
+            .querySelector(`[aria-label="Choose source ${side}"]`)
+            ?.dataset.tip.includes(dimensions),
+        { side, dimensions },
+      );
+      await page.getByRole('button', { name: `Choose source ${side}`, exact: true }).hover();
+      await page
+        .locator('#ayori-tooltip')
+        .filter({ hasText: dimensions })
+        .waitFor({ state: 'visible' });
+    }
     await page.locator('canvas').focus();
     await page.keyboard.press('Control+Alt+g');
     assert.equal(
@@ -80,9 +89,82 @@ try {
       deviceScaleFactor: 1,
       mobile: false,
     });
+    const toolbar = await page.locator('header').evaluate((header) => {
+      const bounds = header.getBoundingClientRect();
+      const buttons = [...header.querySelectorAll('button')]
+        .filter((b) => b.getBoundingClientRect().width > 0)
+        .map((b) => {
+          const r = b.getBoundingClientRect();
+          return {
+            label: b.getAttribute('aria-label'),
+            x: r.x,
+            y: r.y,
+            right: r.right,
+            bottom: r.bottom,
+          };
+        });
+      return { height: bounds.height, overflow: header.scrollWidth > header.clientWidth, buttons };
+    });
+    assert.equal(toolbar.height, 44);
+    assert.equal(toolbar.overflow, false);
+    for (const b of toolbar.buttons)
+      assert(b.x >= 0 && b.right <= 960 && b.y >= 0 && b.bottom <= 44, JSON.stringify(b));
+    for (let i = 1; i < toolbar.buttons.length; i++)
+      assert(toolbar.buttons[i].x >= toolbar.buttons[i - 1].right - 1, 'Toolbar controls overlap');
+    await page.screenshot({ path: 'local-fixtures/compact-workspace-960.png' });
+    // Native popovers light-dismiss, restore focus on Escape, and can reopen.
+    const options = page.getByRole('button', { name: 'View options', exact: true });
+    const menu = page.getByRole('dialog', { name: 'View options', exact: true });
+    await options.click();
+    await menu.waitFor({ state: 'visible' });
+    const menuBounds = await menu.boundingBox();
+    assert(menuBounds.x >= 0 && menuBounds.x + menuBounds.width <= 960);
+    await menu.getByRole('button', { name: '400%', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Toggle fit and 100%' })
+      .filter({ hasText: '400%' })
+      .waitFor();
+    await page.keyboard.press('Escape');
+    await menu.waitFor({ state: 'hidden' });
+    assert.equal(await options.getAttribute('aria-expanded'), 'false');
+    assert(
+      await options.evaluate((b) => b === document.activeElement),
+      'Escape returns focus to View options',
+    );
+    await options.click();
+    await menu.waitFor({ state: 'visible' });
+    await page.mouse.click(480, 500);
+    await menu.waitFor({ state: 'hidden' });
+    await options.click();
+    await menu.waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Import images or folders' }).click();
+    await page.getByRole('dialog', { name: 'Import comparison' }).waitFor({ state: 'visible' });
+    await page.keyboard.press('Escape');
+    await page.locator('canvas').focus();
+    await page.keyboard.press('v');
+    await page.getByRole('textbox', { name: 'Search scenes' }).fill('no such frame');
+    await page.getByText('No matching scenes.', { exact: true }).waitFor();
+    await page.keyboard.press('Escape');
+    await page.getByRole('dialog', { name: 'Scenes', exact: true }).waitFor({ state: 'hidden' });
     await page.getByRole('button', { name: 'Settings and shortcuts', exact: true }).click();
+    assert.equal(
+      await page.locator('.shortcut-row').count(),
+      12,
+      'Only essentials are shown initially',
+    );
+    assert.equal(
+      await page.locator('.shortcut-row').first().locator('strong').textContent(),
+      'Flicker previous source',
+    );
+    await page.getByRole('button', { name: 'Show more shortcuts', exact: true }).click();
+    assert.equal(await page.locator('.shortcut-row').count(), 53);
+    await page.getByRole('button', { name: 'Essentials only', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Search shortcuts' }).fill('export');
+    await page.getByRole('button', { name: 'Edit Export HTML shortcut', exact: true }).waitFor();
+    await page.getByRole('textbox', { name: 'Search shortcuts' }).fill('');
     const layout = await page
-      .getByRole('dialog', { name: 'Settings & shortcuts' })
+      .getByRole('dialog', { name: 'Help & shortcuts' })
       .evaluate((dialog) => {
         const bounds = dialog.getBoundingClientRect();
         return {
@@ -101,10 +183,16 @@ try {
         !layout.overflow,
     );
     await page.screenshot({ path: 'local-fixtures/release-settings-960.png' });
+    await page.getByRole('button', { name: 'Using & comparing', exact: true }).click();
+    await page.getByRole('heading', { name: '1 · Bring in your sources' }).waitFor();
+    await page.getByRole('button', { name: 'Comparing images', exact: true }).click();
+    await page.getByRole('heading', { name: 'Use differences and scores as clues' }).waitFor();
+    await page.screenshot({ path: 'local-fixtures/compact-comparison-guide.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();
     await session.send('Emulation.clearDeviceMetricsOverride');
     await session.detach();
-    assert.equal(await page.evaluate(() => typeof window.__AYORI_WORKSPACE__), 'undefined');
+    if (!process.argv.includes('--dev'))
+      assert.equal(await page.evaluate(() => typeof window.__AYORI_WORKSPACE__), 'undefined');
     assert.deepEqual(errors, []);
     console.log(
       JSON.stringify({
@@ -114,6 +202,9 @@ try {
         tooltip: true,
         split: true,
         minimumWindowLayout: layout,
+        compactToolbar: toolbar,
+        popoverDismissal: true,
+        essentialsAndGuides: true,
         frontendErrors: errors,
       }),
     );

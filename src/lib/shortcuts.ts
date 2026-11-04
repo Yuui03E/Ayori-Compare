@@ -49,8 +49,8 @@ export const actions: ShortcutAction[] = [
   action('scenes', 'Browse scenes', 'Open or close the scene list.', 'Workspace', ['v']),
   action(
     'settings',
-    'Settings & shortcuts',
-    'Edit keyboard shortcuts and interface preferences.',
+    'Help & shortcuts',
+    'Essential shortcuts, app and comparison guides, and interface preferences.',
     'Workspace',
     ['Ctrl+,', 'F1', 'Shift+/'],
     { global: true },

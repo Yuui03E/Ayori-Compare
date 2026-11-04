@@ -87,16 +87,16 @@ try {
       .getByText('Tab is reserved for moving keyboard focus between controls.', { exact: true })
       .waitFor();
     await page.keyboard.press('Escape');
-    assert(await page.getByRole('dialog', { name: 'Settings & shortcuts' }).isVisible());
+    assert(await page.getByRole('dialog', { name: 'Help & shortcuts' }).isVisible());
     await page.getByRole('button', { name: 'Edit Hold dual loupe shortcut', exact: true }).click();
     await page.keyboard.press('l');
-    await page.getByRole('tab', { name: 'Interface & guidance' }).click();
+    await page.getByRole('button', { name: 'Interface', exact: true }).click();
     await page.getByRole('checkbox', { name: /Auto-hide comparison controls/ }).uncheck();
     assert.equal(
       await page.evaluate(() => JSON.parse(localStorage.getItem('ayori.interface.v1')).autoHide),
       false,
     );
-    await page.getByRole('tab', { name: /Keyboard shortcuts/ }).click();
+    await page.getByRole('button', { name: /Keyboard shortcuts/ }).click();
     await page.getByRole('textbox', { name: 'Search shortcuts' }).fill('');
     await page.screenshot({ path: 'local-fixtures/shortcut-settings.png' });
     await page.getByRole('button', { name: 'Close settings' }).click();

@@ -55,10 +55,11 @@ try {
   await page.getByRole('button', { name: 'Copy PNG', exact: true }).waitFor();
   await page.waitForFunction(
     () =>
-      !document.body.innerText.includes('Loading scene') &&
-      !document.body.innerText.includes('Loading source…'),
+      ![...document.querySelectorAll('.source-chip')].some((b) =>
+        b.dataset.tip.includes('Loading source'),
+      ),
   );
-  assert.equal(await page.locator('.sources .source').count(), paths.length);
+  assert.equal(Number(await page.locator('.browse .count').textContent()), paths.length);
   const sceneCount = Number(
     (await page.locator('.scene small').textContent()).split('/')[1].trim(),
   );
@@ -67,9 +68,19 @@ try {
   if (sceneCount > 1) {
     await page.keyboard.press('ArrowDown');
     await page.waitForFunction(() => window.__SHARED_COUNTS__.released > 0);
-    await page.waitForFunction(() => !document.body.innerText.includes('Loading source…'));
+    await page.waitForFunction(
+      () =>
+        ![...document.querySelectorAll('.source-chip')].some((b) =>
+          b.dataset.tip.includes('Loading source'),
+        ),
+    );
     await page.keyboard.press('ArrowUp');
-    await page.waitForFunction(() => !document.body.innerText.includes('Loading source…'));
+    await page.waitForFunction(
+      () =>
+        ![...document.querySelectorAll('.source-chip')].some((b) =>
+          b.dataset.tip.includes('Loading source'),
+        ),
+    );
   }
   await page.keyboard.press('h');
   await page.keyboard.press('h');

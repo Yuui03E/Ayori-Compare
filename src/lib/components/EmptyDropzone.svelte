@@ -68,7 +68,7 @@
   <footer>
     <span>Built for the details you almost missed.</span><button
       data-tip={p.hint('settings')}
-      onclick={() => (w.help = true)}><Keyboard size={14} /> Keyboard shortcuts</button
+      onclick={() => (w.help = true)}><Keyboard size={14} /> Help & shortcuts</button
     >
   </footer>
 </main>
@@ -76,7 +76,7 @@
 <style>
   .empty {
     position: absolute;
-    inset: 32px 0 0;
+    inset: 44px 0 0;
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -3,12 +3,10 @@
   import { isTauri } from '@tauri-apps/api/core';
   import { getCurrentWebview } from '@tauri-apps/api/webview';
   import { listen } from '@tauri-apps/api/event';
-  import { X, Upload, LoaderCircle } from '@lucide/svelte';
+  import { X, Upload } from '@lucide/svelte';
   import Titlebar from './lib/components/Titlebar.svelte';
   import EmptyDropzone from './lib/components/EmptyDropzone.svelte';
   import TopSourceBar from './lib/components/TopSourceBar.svelte';
-  import ModeDock from './lib/components/ModeDock.svelte';
-  import BottomSceneBar from './lib/components/BottomSceneBar.svelte';
   import PixelReadout from './lib/components/PixelReadout.svelte';
   import HelpDialog from './lib/components/HelpDialog.svelte';
   import SourceBrowser from './lib/components/SourceBrowser.svelte';
@@ -25,7 +23,6 @@
   let pan: Point | null = null;
   let loupeKey = '';
   let rightHeld = false;
-  const modeNames = ['Instant swap', 'Curtain', 'Side by side', 'Difference', 'Banding & planes'];
   function activity(event?: PointerEvent) {
     lastActivity = performance.now();
     if (event) hoveringHud = !!(event.target as Element)?.closest?.('[data-hud]');
@@ -44,6 +41,7 @@
       return;
     }
     const target = event.target as HTMLElement;
+    if (target.closest('[popover]:popover-open')) return;
     if (
       target.closest('input,textarea,select,[contenteditable="true"]') ||
       target.isContentEditable
@@ -137,6 +135,8 @@
           p.autoHide &&
           !!w.matrix &&
           !hoveringHud &&
+          !document.activeElement?.closest('[data-hud]') &&
+          !document.querySelector('[popover=auto]:popover-open') &&
           !w.help &&
           !w.sourceBrowser &&
           !w.drawer &&
@@ -192,31 +192,9 @@
 ></canvas>
 {#if !w.matrix}<EmptyDropzone />{/if}
 <div class="hud" class:hidden={w.hudHidden}>
-  <Titlebar onerror={(message) => w.notify(message)} />
-  {#if w.matrix}
-    <TopSourceBar /><ModeDock /><BottomSceneBar />
-    <div class="mode-label">
-      {modeNames[w.mode]}<span
-        >{w.mode === 0
-          ? `${p.label('nextSource')} next source · ${p.label('flicker')} flicker`
-          : `${p.label('loupe')} or right hold · dual loupe`}</span
-      >
-    </div>
-    <div class="status-left">
-      <i></i>{w.demo ? 'PROCEDURAL SAMPLE' : 'LOCAL WORKSPACE'}<span
-        data-tip="RGB source samples are interpreted as SDR without ICC conversion; see keyboard help for precision details."
-        >Source RGB · SDR</span
-      >
-    </div>
-    <div class="status-right">
-      {#if w.loading}<LoaderCircle size={10} class="spinner" /> Loading scene{:else}{w.frames.filter(
-          Boolean,
-        ).length} ready / {w.matrix.sources.length} sources <b>·</b>
-        <span data-tip="Scene preparation including decode, transfer, and GPU upload"
-          >{w.loadMs.toFixed(0)} ms</span
-        >{/if}<b>·</b>{Math.round(w.zoom * 100)}%
-    </div>
-  {/if}
+  <Titlebar onerror={(message) => w.notify(message)}>
+    {#if w.matrix}<TopSourceBar />{/if}
+  </Titlebar>
 </div>
 {#if w.fallback}<div
     class="precision"
@@ -282,63 +260,10 @@
   .hud.hidden :global(*) {
     pointer-events: none !important;
   }
-  .mode-label {
-    position: absolute;
-    left: 25px;
-    bottom: 99px;
-    font-size: 11px;
-    letter-spacing: 0.015em;
-    color: #82918f;
-  }
-  .mode-label span {
-    display: block;
-    font-size: 9px;
-    margin-top: 5px;
-    color: #536461;
-  }
-  @media (max-height: 760px) {
-    .mode-label {
-      display: none;
-    }
-  }
-  .status-left,
-  .status-right {
-    position: absolute;
-    bottom: 15px;
-    font-size: 8px;
-    color: #5c6f68;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: Consolas, monospace;
-  }
-  .status-left {
-    left: 25px;
-    letter-spacing: 0.07em;
-  }
-  .status-left i {
-    height: 4px;
-    width: 4px;
-    border-radius: 50%;
-    background: #629b7f;
-  }
-  .status-left span {
-    margin-left: 13px;
-    letter-spacing: 0;
-    color: #4e605b;
-  }
-  .status-right {
-    right: 25px;
-    color: #70877d;
-  }
-  .status-right b {
-    font-weight: 400;
-    color: #344d42;
-  }
   .precision {
     position: absolute;
     right: 22px;
-    top: 42px;
+    top: 52px;
     font:
       9px Consolas,
       monospace;
@@ -364,7 +289,7 @@
   .toast {
     position: absolute;
     z-index: 50;
-    bottom: 110px;
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -394,7 +319,7 @@
   }
   .drop-overlay {
     position: absolute;
-    inset: 42px 16px 16px;
+    inset: 52px 16px 16px;
     border: 1px dashed #a0debd;
     border-radius: 17px;
     background: #101b17ee;

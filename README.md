@@ -2,9 +2,11 @@
 
 A Windows-first desktop image comparison tool for anime encoders. Built with Tauri 2, Rust, Svelte 5, and WebGL2.
 
-Open individual images to compare alternatives of one frame, or one folder per release/encoding group to match scenes by filename or frame number. Collections can contain 100+ images or sources; selected and nearby images load as you browse. Use **Browse all** (`Ctrl+K`) to search and assign A/B, and **Import → Add sources** to extend a comparison.
+Open individual images to compare alternatives of one frame, or one folder per release/encoding group to match scenes by filename or frame number. Collections can contain 100+ images or sources; selected and nearby images load as you browse. Click either source name or **Search** (`Ctrl+K`) to assign A/B, and **+ → Add sources** to extend a comparison.
 
-**Settings** (`Ctrl+,` or `F1`) contains 53 editable shortcuts with conflict checking and automatic local saving. Hover or focus a control for its description and current shortcut. New defaults include `X` to exchange A/B, `Alt+←/→` to step B, `Home/End` to jump sources, `V` to browse scenes, `+/-` (unshifted `=`/`-`) to zoom, and `I` to cycle filtering.
+A single 44-pixel top bar keeps A/B, inspection modes, scenes and zoom close at hand. Hover or focus a control for compact details and its current shortcut. **View options** contains zoom presets, filtering, effect strength and offline HTML export. Source metadata and scores appear on hover instead of covering the image.
+
+**Help & shortcuts** (`F1` or `Ctrl+,`) starts with 12 essential actions, led by flicker, fit/100%, loupe and comparison modes. Search any action or choose **Show more shortcuts** for optional bindings. Every assignment is editable with conflict checking and automatic local saving; existing custom assignments are preserved. **Using & comparing** covers imports, navigation, sharing, frame alignment, detail, banding and interpreting scores.
 
 - [Current implementation status and resume point](docs/PROGRESS.md)
 - [Approved requirements and execution plan](docs/requirements_review_and_execution_plan.md)

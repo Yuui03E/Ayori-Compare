@@ -177,3 +177,7 @@ Read-only environment checks found Git 2.56.0, Node 26.13.0, npm 11.20.0, Rust 1
 ## 10. Next implementation boundary
 
 The next implementation milestone is the foundation plus an early precision/performance proof. Before decisions affect visible behavior, resolve the remaining color/alpha policy, ambiguous ingestion interactions, quadrant assignment, and offline export contract using this review. No source application, dependencies, sample assets, or runtime behavior were created during the requirements review.
+
+## Subsequent user decision — compact controls and focused help
+
+The user approved the typography and general styling, then requested less empty space, a single slim top row, compact hover information, essential shortcuts before optional commands, and help for both operating the app and comparing images. This supersedes the earlier large A/B cards and floating control islands. Retain editable saved assignments and large-collection import behavior while presenting only essential bindings initially. The new UI must remain usable at the 960×600 minimum window size.
