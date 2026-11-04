@@ -1,0 +1,35 @@
+# Comparison notes
+
+## Importing images
+
+Individual images become alternatives within one scene. Folders represent different releases or encoding groups, with frames matched by filename or trailing frame number. Missing source frames remain visible as missing cells.
+
+Ayori accepts extracted PNG, WebP, AVIF and JPEG images. Direct video decoding and disc extraction are outside its scope.
+
+## Different resolutions and aspect ratios
+
+Images fill a shared area using the largest width and height in the scene. For example, 720p and 1080p images both occupy a 1920×1080 area at 100% zoom. Different aspect ratios stretch to fit, so match framing and crop before judging quality.
+
+Auto filtering uses nearest sampling at 100% and above, and smooth filtering below. Bilinear is available in **View options**. Display scaling is not bicubic and does not modify the original samples.
+
+SSIMULACRA2 scores use a separate path: source 1 is resized to each candidate's dimensions using Catmull–Rom. Scores complement visual inspection; alignment, crop and scaling affect their interpretation.
+
+## Precision and large collections
+
+Pixel readout uses original decoded samples. If native high-depth display is unavailable, Ayori labels the reduced-precision preview. Effects calculated from that preview are not full-precision analysis.
+
+Collections can contain 100+ images or sources. Ayori keeps up to eight selected or nearby images resident and loads others as you browse. Newly selected images may need time to load. Offline export size grows with the images included.
+
+## Controls and sharing
+
+- **F1** or **Ctrl+,** opens help, editable shortcuts and interface settings.
+- **Ctrl+K** opens searchable A/B source selection.
+- **Space** flickers between the current and previous primary source.
+- **Double right click** zooms to 200% at the pointer; repeat to restore the previous zoom and pan. Configure the target in **Help → Interface**.
+- **Right hold or drag**, or **Shift**, opens the dual loupe.
+- **Alt+Home** returns Home while keeping the comparison ready to resume.
+- **Q** quits, **Ctrl+M** minimizes and **F10** maximizes/restores. App shortcuts stay inactive while typing or using a dialog.
+
+These are default bindings; hover help reflects saved custom assignments. **View options** contains filtering, effect strength and offline HTML export. Copy PNG captures the comparison canvas.
+
+For measured performance, platform qualification and precision limits, see [release validation](RELEASE_VALIDATION.md).

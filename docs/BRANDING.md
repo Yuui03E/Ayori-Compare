@@ -10,3 +10,9 @@ The user selected **A / Facet** from the logo studies on 2026-11-04. Preserve it
 - Offline HTML inlines the same vector, including its favicon, and requires no network access for branding.
 
 Earlier logo studies are retained in Git history. The current source tree contains only the approved identity.
+
+## Documentation screenshot
+
+`docs/images/ayori-comparison.png` is a capture of the packaged Windows app using its original built-in sample artwork. It shows **Reference** versus **Quantized** in vertical curtain mode with the 32px toolbar. The window edge and empty lower margin are cropped; the toolbar and compared image are preserved. No private frames or third-party artwork are included.
+
+To refresh it, open **Explore a sample comparison**, select A = Reference and B = Quantized, choose Curtain and center the divider. Temporarily disable automatic toolbar hiding for capture, then restore the previous preference. Keep documentation images small and check them at README display size.

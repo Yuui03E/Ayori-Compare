@@ -25,7 +25,7 @@ Run the frontend build before direct Cargo commands: Rust embeds `dist/offline.j
 - Preserve original decoded precision for source readout, and label any reduced-precision preview.
 - Represent missing frames explicitly. Keep file work, decoding and metrics off the UI thread, and reject stale results after navigation.
 - Add meaningful tests for changed behavior. Visually verify UI changes in the native application where possible.
-- Keep generated binaries, screenshots, exports, personal frame sets and downloaded tools outside Git. Use GitHub Releases for distributable executables.
+- Keep generated binaries, temporary verification screenshots, exports, personal frame sets and downloaded tools outside Git. Curated documentation screenshots belong in `docs/images/` and should use redistributable sample content. Use GitHub Releases for distributable executables.
 - Consult [implementation decisions](docs/IMPLEMENTATION_DECISIONS.md), [validation evidence](docs/RELEASE_VALIDATION.md) and the [working agreement](AGENTS.md). Update [progress](docs/PROGRESS.md) when completing an implementation milestone.
 
 Additional native checks and benchmarks are described in [scripts/README.md](scripts/README.md). Linux runtime qualification and physical mixed-DPI/240 Hz testing are still open; a successful build alone does not establish these results.
