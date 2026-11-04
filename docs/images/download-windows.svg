@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="248" height="48" viewBox="0 0 248 48" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Download Ayori for Windows</title>
+  <rect x="1" y="1" width="246" height="46" rx="8" fill="#AFE6D3" stroke="#60AE97"/>
+  <path d="M25 14v13m-5-5 5 5 5-5m-13 8v4h16v-4" stroke="#07140F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="47" y="29" fill="#07140F" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="650">Download for Windows</text>
+</svg>

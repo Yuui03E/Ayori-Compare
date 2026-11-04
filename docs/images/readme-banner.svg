@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" fill="none" role="img" aria-labelledby="title description">
+  <title id="title">Ayori — Every detail. Side by side.</title>
+  <desc id="description">Ayori's mint and warm-white Facet logo on black, with two overlapping comparison frames.</desc>
+  <defs>
+    <linearGradient id="edge" x1="0" y1="0" x2="1280" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60AE97" stop-opacity=".7"/>
+      <stop offset=".5" stop-color="#253A32"/>
+      <stop offset="1" stop-color="#F0ECE2" stop-opacity=".35"/>
+    </linearGradient>
+    <linearGradient id="frame" x1="860" y1="60" x2="1150" y2="310" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#AFE6D3" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#AFE6D3" stop-opacity="0"/>
+    </linearGradient>
+    <g id="facet">
+      <path d="M10 83 40 17H58L28 83Z" fill="#AFE6D3"/>
+      <path d="M62 25 89 83H68L52 48Z" fill="#F0ECE2"/>
+      <path d="M39 63H56L64 80H31Z" fill="#60AE97"/>
+    </g>
+  </defs>
+  <rect x="1" y="1" width="1278" height="358" rx="20" fill="#000000" stroke="url(#edge)"/>
+  <path d="M824 1 675 359M1052 1 903 359M1279 2 1130 359" stroke="#AFE6D3" stroke-opacity=".055"/>
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <circle cx="65" cy="54" r="3" fill="#AFE6D3"/>
+    <text x="79" y="58" fill="#93B5A8" font-size="12" font-weight="600" letter-spacing="3">A CLOSER LOOK</text>
+    <use href="#facet" transform="translate(51 87) scale(.87)"/>
+    <text x="150" y="154" fill="#F0ECE2" font-size="68" font-weight="650" letter-spacing="-2">Ayori</text>
+    <text x="62" y="219" font-size="32" font-weight="500" letter-spacing="-.7"><tspan fill="#F0ECE2">Every detail.</tspan><tspan fill="#AFE6D3"> Side by side.</tspan></text>
+    <text x="64" y="254" fill="#9CADA5" font-size="17">Precise image comparison. Built for your next encode.</text>
+    <path d="M64 284H556" stroke="#23382E"/>
+    <text x="64" y="313" fill="#AFE6D3" font-size="12" font-weight="600" letter-spacing="1.6">COMPARE</text>
+    <circle cx="170" cy="309" r="2" fill="#416B5B"/>
+    <text x="192" y="313" fill="#F0ECE2" font-size="12" font-weight="600" letter-spacing="1.6">INSPECT</text>
+    <circle cx="288" cy="309" r="2" fill="#416B5B"/>
+    <text x="310" y="313" fill="#AFE6D3" font-size="12" font-weight="600" letter-spacing="1.6">SHARE</text>
+    <rect x="825" y="61" width="233" height="225" rx="12" fill="#000000" stroke="#60AE97" stroke-opacity=".55"/>
+    <rect x="837" y="73" width="209" height="201" rx="7" fill="url(#frame)"/>
+    <text x="850" y="105" fill="#AFE6D3" font-size="11" font-weight="600" letter-spacing="1.5">A / REFERENCE</text>
+    <use href="#facet" transform="translate(861 117) scale(1.5)"/>
+    <rect x="992" y="111" width="224" height="207" rx="12" fill="#000000" stroke="#F0ECE2" stroke-opacity=".4"/>
+    <rect x="1004" y="123" width="200" height="183" rx="7" fill="#F0ECE2" fill-opacity=".025"/>
+    <text x="1017" y="156" fill="#E0C795" font-size="11" font-weight="600" letter-spacing="1.5">B / COMPARE</text>
+    <use href="#facet" transform="translate(1040 162) scale(1.28)"/>
+    <path d="M992 139V289" stroke="#AFE6D3" stroke-width="2"/>
+    <circle cx="992" cy="214" r="13" fill="#000000" stroke="#AFE6D3"/>
+    <path d="m988 210-4 4 4 4m8-8 4 4-4 4" stroke="#AFE6D3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

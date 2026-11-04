@@ -16,3 +16,9 @@ Earlier logo studies are retained in Git history. The current source tree contai
 `docs/images/ayori-comparison.png` is a capture of the packaged Windows app using its original built-in sample artwork. It shows **Reference** versus **Quantized** in vertical curtain mode with the 32px toolbar. The window edge and empty lower margin are cropped; the toolbar and compared image are preserved. No private frames or third-party artwork are included.
 
 To refresh it, open **Explore a sample comparison**, select A = Reference and B = Quantized, choose Curtain and center the divider. Temporarily disable automatic toolbar hiding for capture, then restore the previous preference. Keep documentation images small and check them at README display size.
+
+## README artwork
+
+`docs/images/readme-banner.svg` carries the black, mint and warm-white identity into the project page. Its overlapping A/B frames are brand artwork; the application screenshot below remains the native capture. The compact banner in the same folder is selected below 600px through a GitHub-compatible `<picture>` element. Both banners retain the master's exact three Facet paths.
+
+`docs/images/download-windows.svg` is the mint download link artwork. All three SVGs are self-contained, use system fonts and contain no scripts, embedded raster data or external resources. Keep their palette aligned with the master and preserve readable text alternatives in the README. GitHub controls the surrounding page colors; the artwork retains its black background in either theme.

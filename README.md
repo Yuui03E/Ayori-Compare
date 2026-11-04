@@ -1,64 +1,81 @@
 <p align="center">
-  <img src="src-tauri/icons/128x128.png" alt="Ayori logo" width="72" height="72">
+  <picture>
+    <source media="(max-width: 600px)" srcset="docs/images/readme-banner-compact.svg">
+    <img src="docs/images/readme-banner.svg" alt="Ayori — Every detail. Side by side. Precise image comparison." width="100%">
+  </picture>
 </p>
 
-<h1 align="center">Ayori</h1>
+<p align="center">
+  <a href="https://github.com/Yuui03E/Ayori-Compare/releases/latest/download/Ayori.exe"><img src="docs/images/download-windows.svg" alt="Download Ayori for Windows" width="248" height="48"></a>
+</p>
 
-<p align="center">Precise image comparison for encoders and detail-focused workflows.</p>
+<p align="center">
+  <strong>Windows 10/11 x64</strong> · Single portable app · <a href="LICENSE">MIT open source</a><br>
+  <a href="https://github.com/Yuui03E/Ayori-Compare/releases">Release notes</a> · <a href="docs/COMPARISON.md">Comparison guide</a> · <a href="CONTRIBUTING.md">Contribute</a>
+</p>
 
-<p align="center"><strong>Windows · PNG · WebP · AVIF · JPEG · MIT</strong></p>
+## A closer look
 
-<p align="center"><a href="https://github.com/Yuui03E/Ayori-Compare/releases/latest/download/Ayori.exe"><strong>Download for Windows</strong></a> · <a href="https://github.com/Yuui03E/Ayori-Compare/releases">All releases</a></p>
+Compare frames from different releases, spot encoding artifacts and inspect original pixel values—all in a compact, pure-black workspace.
 
 ![Ayori's compact black interface comparing reference and quantized samples with a vertical curtain](docs/images/ayori-comparison.png)
 
-<p align="center"><sub>The built-in sample: reference on the left, quantized on the right.</sub></p>
+<p align="center"><sub>Actual Ayori interface · Reference on the left, quantized on the right · Built-in sample</sub></p>
 
-## Features
+## Built for the details
 
-- **Compare your way.** Flicker, curtains, synchronized split views, difference maps, banding, luma and chroma inspection.
-- **Inspect exact samples.** High-depth PNG/AVIF support, source pixel readout, a dual loupe and configurable double-right-click zoom.
-- **Browse large collections.** Compare 100+ images or match scenes across release folders, with searchable A/B selection and explicit missing frames.
-- **Share the result.** Copy a PNG or export a self-contained HTML comparison that works offline. Modified source files reload in place.
-- **Make it yours.** Editable shortcuts, contextual help and a pure-black toolbar adjustable from 16–44px.
+<table>
+  <tr>
+    <td width="50%" valign="top"><h3>Compare</h3>Flicker, curtains, synchronized splits and difference maps. Switch sources without losing your view.</td>
+    <td width="50%" valign="top"><h3>Inspect</h3>Exact source readout, high-depth PNG/AVIF, banding, luma, chroma and a dual loupe.</td>
+  </tr>
+  <tr>
+    <td valign="top"><h3>Organize</h3>100+ images, matched scene folders, searchable A/B sources and live file reload. Missing frames stay explicit.</td>
+    <td valign="top"><h3>Customize &amp; share</h3>Editable shortcuts, reversible zoom and a 16–44px toolbar. Export PNG or offline HTML.</td>
+  </tr>
+</table>
 
-## Getting started
+## From frames to answers
 
-Download **Ayori.exe** above and run it on Windows 10/11 x64. No installation is needed; the [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) must be available.
+1. **Open** images for one scene, or folders for matched scenes. Supports **PNG · WebP · AVIF · JPEG**.
+2. **Choose A and B**, then pick a comparison mode. Add more sources with **+ → Add sources**.
+3. **Inspect and share.** Press **F1** for shortcuts and guidance; copy a PNG or export an offline comparison.
 
-1. Open individual images to compare alternatives of one frame, or folders to match scenes by filename or frame number.
-2. Choose sources **A** and **B**, then select a comparison mode. Use **+ → Add sources** to extend the collection.
-3. Press **F1** for essential shortcuts and the comparison guide. Double right click to zoom in; repeat to restore your previous view.
+Try **Explore a sample comparison** on Home to get started without files.
 
-Try **Explore a sample comparison** on the home screen without importing files.
+> **Before you compare:** match framing and aspect ratios. Different resolutions scale to a shared area; original samples remain unchanged and reduced-precision previews are labeled. [How scaling and scores work →](docs/COMPARISON.md)
 
-Images with different resolutions fill a shared comparison area; different aspect ratios stretch to fit. Match framing before judging quality. Original samples remain unchanged, and reduced-precision previews are labeled. See [comparison notes](docs/COMPARISON.md) for scaling and score details.
+### Run on Windows
 
-## Build from source
+[Download Ayori.exe](https://github.com/Yuui03E/Ayori-Compare/releases/latest/download/Ayori.exe) and open it. No installer needed. Requires the [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/).
 
-Requires **Node.js 22.12+**, **Rust 1.98+** and **NASM 2.14+**. Windows also needs C++ Build Tools and WebView2. Follow the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform, and make NASM available on PATH or through the `NASM` environment variable.
+<details>
+<summary><strong>Build from source</strong></summary>
+
+Requires **Node.js 22.12+**, **Rust 1.98+** and **NASM 2.14+** on PATH or through the `NASM` environment variable. Windows also needs C++ Build Tools and WebView2. See [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 ```sh
 npm ci
 npm run desktop
 ```
 
-Build the portable Windows app:
+Create the Windows portable executable at `releases/Ayori.exe`:
 
 ```sh
 npm run desktop:build
 ```
 
-Output: **`releases/Ayori.exe`**. WebView2 is required to run it.
+On Linux, install the native prerequisites and use `npm run tauri -- build --bundles appimage`. Linux runtime validation is pending.
 
-Windows is the primary tested platform. Linux AppImage builds are available via `npm run tauri -- build --bundles appimage` on Linux; Linux runtime validation is pending.
+[Development checks](CONTRIBUTING.md) · [Scripts and benchmarks](scripts/README.md)
 
-## Contributing
+</details>
 
-Bug reports, improvements and forks are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for development checks and contribution guidelines.
+---
 
-Built with Tauri 2, Rust, Svelte 5 and WebGL2. See [validation results](docs/RELEASE_VALIDATION.md) and [development progress](docs/PROGRESS.md) for measured performance and current limitations.
+<p align="center">
+  Built with <strong>Tauri 2 · Rust · Svelte 5 · WebGL2</strong><br>
+  <a href="CONTRIBUTING.md">Contributions welcome</a> · <a href="docs/RELEASE_VALIDATION.md">Validation &amp; limitations</a> · <a href="LICENSE">MIT license</a>
+</p>
 
-## License
-
-[MIT](LICENSE). Third-party test fixtures retain their accompanying license notices.
+<p align="center"><sub>Third-party test fixtures retain their accompanying license notices.</sub></p>
