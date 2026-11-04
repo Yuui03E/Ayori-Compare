@@ -2,7 +2,16 @@
 
 These measurements describe this machine and these workloads. Unmet targets remain release qualification work.
 
-## Current Windows delivery — adjustable Ayori bar and application controls
+## Current Windows delivery — configurable double-right-click zoom
+
+- Normal executable: **8,494,592 bytes** (8.49 MB decimal), SHA-256 `789522cc0e8173501f48ad47ff552aa9c2d232155e0052de4cdbff632b6071db`. `npm run desktop:build` passes with zero Svelte errors/warnings; diagnostics commands and development workspace hooks are absent.
+- **37 frontend tests pass**. The gesture tests cover click timing/distance, four clicks producing two toggles, no transient loupe, hold/drag, cancellation/button chords, disabled behavior and target validation. Coordinate tests cover exact anchored zoom/pan restoration at four DPI scales and invalidation after scene/layout/manual-view changes. Rust decoding, metrics and transport logic and both lockfiles are unchanged.
+- `verify-quick-zoom.mjs` passes in development and the final packaged WebView2 app: default 200%, custom 375% persistence, identical screenshot crops after zoom/pan/return at 100/125/150/200% emulated display scaling, right split anchoring, source switching, loupe release coordination, single/slow/distant click rejection, disabled gesture, Fit/resize/blur invalidation and Home/resume. The direct OS automation tool does not support right-button double clicks; native WebView2 pointer input supplies the gesture checks. Actual Windows workspace and settings were visually inspected.
+- `verify-offline-zoom.mjs` passes against an HTML comparison freshly exported by this executable: 2 sources / 4 scenes, session target 375%, exact zoom/pan and screenshot restoration after panning, anchored original pixel readout, right/Shift loupe coordination, scene reset, zero network requests and zero frontend errors. Editing the target returns keyboard focus to the canvas on interaction. The test waits for the viewer's final exact-sample status rather than its transient loading count.
+- Final packaged 100-image UI checks, arbitrary A/B, saved shortcuts, tooltip/help/popovers and minimum-window layout pass. Real user WEBP import (2 sources / 4 scenes), scene/source navigation, shared-buffer receipt/release, maximize/restore and copying pass. Clipboard verification matches all **1,296,000 RGBA pixels**. Q exits the final Windows process.
+- Earlier native precision/fallback, hot reload, sparse-scene, metrics and 100-image/100-folder checks also pass with the new desktop frontend. Display/metric resampling algorithms and original samples are unchanged; the guide and README now explain the normalization, filtering and aspect-ratio caveat. Prior backend/performance evidence and outstanding external qualifications below remain applicable; no new performance benchmark is claimed.
+
+## Previous Windows delivery — adjustable Ayori bar and application controls
 
 - Normal executable: **8,488,960 bytes** (8.49 MB decimal), SHA-256 `287626674e5c777797c44ebb182c656e0b39093e335788a7c90a2c8fd8a76106`. Built with `npm run desktop:build`; diagnostic commands and development workspace access are absent.
 - **26 frontend correctness tests pass**, with zero Svelte diagnostics. This update changes the frontend, application branding/configuration, scripts and documentation; Rust source and both lockfiles are unchanged, so the prior 21 Rust tests, strict Clippy, formatting and dependency-audit evidence remains applicable.

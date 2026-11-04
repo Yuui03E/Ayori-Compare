@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(15000);
   const errors = [],
     network = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -31,9 +32,7 @@ try {
   });
   await page.context().setOffline(true);
   await page.goto(new URL('../local-fixtures/quick-zoom.html', import.meta.url).href);
-  await page.waitForFunction(() =>
-    document.querySelector('#status').textContent.includes('2 ready'),
-  );
+  await page.waitForFunction(() => document.querySelector('#status').textContent.includes('exact'));
   assert.equal(await page.locator('#scenes option').count(), 4);
   const target = page.getByRole('spinbutton', { name: 'Double-right-click target zoom' });
   assert.equal(await target.inputValue(), '200');
@@ -89,7 +88,7 @@ try {
   await page.waitForFunction(
     () =>
       document.querySelector('#scenes').value === '1' &&
-      document.querySelector('#status').textContent.includes('2 ready'),
+      document.querySelector('#status').textContent.includes('exact'),
   );
   await double();
   await settle();
