@@ -6,6 +6,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 - Updated: 2026-11-04 (Asia/Dhaka).
 - Branch: `main`.
+- The trailer is published in the GitHub README; its standalone source and the user's saved video live in the sibling Desktop folder `Ayori_trailer`.
 - The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
@@ -37,7 +38,7 @@ The latest requested features are complete. Images are alternatives of one scene
 
 Current released executable: [Ayori v0.1.0](https://github.com/Yuui03E/Ayori-Compare/releases/tag/v0.1.0), **8,501,248 bytes**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. The preserved local app is in the sibling `Ayori Local` folder. Final packaged validation, the Facet identity and publication evidence are recorded in the dated entries below. Generated build caches were removed during source cleanup; run `npm ci` before rebuilding.
 
-The standalone video project is in the sibling Desktop folder `Ayori_trailer`, with the user's saved MP4 at its root and reproducible output under `renders/`. Its source is tracked in a separate local Git repository. Consult the latest dated entries for README publication status.
+The standalone video project is in the sibling Desktop folder `Ayori_trailer`, with the user's saved MP4 at its root and reproducible output under `renders/`. Its source is tracked in a separate local Git repository. The public README embeds the full silent looping preview and links to the original MP4 with sound; both are assets of the existing v0.1.0 release.
 
 No further implementation task from the current request remains. Linux/AppImage remains deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks need suitable environments. Earlier timing/memory measurements in `RELEASE_VALIDATION.md` describe the preceding baseline; they were not rerun as performance claims for the new UI. The upstream development-only advisory remains documented.
 
@@ -361,3 +362,10 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Prepared the README's linked animated preview and full-video download caption, preserving the native screenshot in a disclosure. GitHub's Markdown renderer marks the image as animated and retains the video links. The rendered image URL returns the exact 720-frame, 60-second, infinitely looping GIF, and all nine local README links resolve. GitHub/browser motion preferences can pause animation; MP4 autoplay and first-visit tracking are not available in README Markdown.
 - Saved the independent trailer repository in local commit `7d5337e` with 47 source/license files and its npm lockfile; generated media and working records remain ignored. Preserved the original unpublished app-repository trailer commit on local branch `codex/trailer-source-archive`, then based the application update on the existing public main without trailer sources. No force-push is required. The moved preview responds on port 3002.
 - Next: push the README/documentation update and verify the live public main tree and rendered README. No application build or correctness-suite rerun is needed for these documentation and media changes.
+
+### 2026-11-04 — README trailer published and project separation complete
+
+- Published the README update in `f89cc9f` and verified the live public page, the exact README content and the remote main tree. The page contains the animated trailer, original 1080p/sound download link and static screenshot disclosure. The public application tree has no `Ayori_trailer` directory; both application lockfiles remain present and unchanged.
+- GitHub recognizes the release GIF as an animated image. The served bytes, decoded frames, duration and infinite-loop metadata match the reviewed local preview. Public MP4/GIF downloads were checksum-verified. Verification used GitHub's Markdown API, live HTML, image decoding and local visual review; direct browser playback on GitHub was not inspected in this pass.
+- The user's saved video and editable project are preserved in the separate Desktop folder, with a clean local source repository and working persistent preview. The old nested project and loose Desktop MP4 paths no longer exist. The application update changes documentation only; application code, native assets, published executable, release tag and dependency lockfiles are unchanged. No new application build or CI result is claimed.
+- Requested README publication and project relocation are complete. GitHub cannot force MP4 autoplay or detect a first visit inside a README; the full-length silent GIF supplies automatic looping subject to visitor animation preferences. Existing platform/hardware qualification limits remain unchanged.
