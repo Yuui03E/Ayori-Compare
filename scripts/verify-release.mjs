@@ -26,6 +26,21 @@ try {
     /not found|unknown command/i,
     'Measurement commands must be absent from the normal release',
   );
+  await assert.rejects(
+    page.evaluate(() => window.__TAURI_INTERNALS__.invoke('benchmark_shared_state')),
+    /not found|unknown command/i,
+  );
+  await page.evaluate(() => {
+    const bridge = window.chrome.webview;
+    window.__SHARED_COUNTS__ = { received: 0, released: 0 };
+    bridge.addEventListener('sharedbufferreceived', () => window.__SHARED_COUNTS__.received++);
+    const release = bridge.releaseBuffer.bind(bridge);
+    bridge.releaseBuffer = (buffer) => {
+      release(buffer);
+      window.__SHARED_COUNTS__.released++;
+      if (buffer.byteLength !== 0) throw Error('Source mapping was not detached');
+    };
+  });
   const roots = process.argv.slice(2);
   const paths = roots.length
     ? roots.map((p) => resolve(p))
@@ -47,6 +62,15 @@ try {
   const sceneCount = Number(
     (await page.locator('.scene small').textContent()).split('/')[1].trim(),
   );
+  await page.waitForFunction(() => window.__SHARED_COUNTS__.received > 0);
+  // The production frontend must release sources across real scene navigation.
+  if (sceneCount > 1) {
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(() => window.__SHARED_COUNTS__.released > 0);
+    await page.waitForFunction(() => !document.body.innerText.includes('Loading source…'));
+    await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(() => !document.body.innerText.includes('Loading source…'));
+  }
   await page.keyboard.press('h');
   await page.keyboard.press('h');
   await page.keyboard.press('2');
@@ -107,6 +131,7 @@ try {
       sceneCount,
       clipboard: true,
       maximizeRestore: true,
+      sharedBuffers: await page.evaluate(() => window.__SHARED_COUNTS__),
       frontendErrors: errors,
     }),
   );

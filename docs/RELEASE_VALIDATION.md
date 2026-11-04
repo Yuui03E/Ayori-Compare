@@ -33,8 +33,8 @@ The legacy raw-response probe receives a real `ArrayBuffer` over `http://ipc.loc
 
 ## Correctness and integration evidence
 
-- Final normal Windows executable: **8,285,184 bytes** (8.29 MB decimal), SHA-256 `c1375159835d87069220141249bf21cea36ad02d0b1c5ff4fcdad611a4ad3349`. Built by `npm run desktop:build`, with measurement commands and development workspace hook verified absent.
-- Final packaged launch, real WEBP folder matrix (two sources/four scenes), 10/12-bit AVIF worker import, clipboard, maximize/restore, minimize and custom close all verified. The actual final comparison UI was visually inspected.
+- Final normal Windows executable: **8,336,384 bytes** (8.34 MB decimal), SHA-256 `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Built by `npm run desktop:build`, with measurement commands and development workspace hook verified absent.
+- Final packaged launch, real WEBP folder matrix (two sources/four scenes), identity and subsampled 10/12-bit AVIF worker imports, clipboard, maximize/restore, minimize and custom close all verified. The actual final comparison, split view and high-depth ramp were visually inspected. Production scene switching receives/releases shared mappings (6 received, 4 released, 2 resident); high-depth AVIF import receives four mappings without frontend errors.
 - OS clipboard image matched **all 1,296,000 RGBA pixels** of the captured 1440×900 canvas, using a native clipboard reader and byte-for-byte comparison.
 
 - 19 Rust tests: 15 library tests plus 4 subprocess AVIF tests. Includes palette/1/2/4-bit PNG, transparency, RGB/RGBA/grayscale-alpha16, CRC/truncation rejection, file matching, malformed AVIF isolation, every encoded sample in generated 10/12-bit AVIF ramps, and 18 Rec.709 YUV depth/subsampling/range combinations checked against known planes.
@@ -51,12 +51,12 @@ A fresh normal release launch importing the two-source 1080p user matrix, calcul
 
 | Sampled peak | Bytes |
 | --- | ---: |
-| Aggregate private process memory | 600,997,888 |
-| Aggregate working sets | 692,740,096 |
-| Dedicated GPU memory | 218,591,232 |
-| Shared GPU memory | 77,869,056 |
+| Aggregate private process memory | 573,001,728 |
+| Aggregate working sets | 665,268,224 |
+| Dedicated GPU memory | 227,856,384 |
+| Shared GPU memory | 75,370,496 |
 
-The last sample was 567,689,216 private bytes and 168,771,584 dedicated GPU bytes. Working sets can count shared pages more than once; GPU counters include driver allocations. Sampling does not capture every transient peak. This includes background scoring and window-size changes and must not be equated to image-buffer sizes alone. Resource ownership is also tested independently by scene-change texture counts and full clearing of the eight-slot 4K workload.
+The last sample was 446,074,880 private bytes and 132,587,520 dedicated GPU bytes. This latest workload also navigates to another scene and back. Working sets can count shared pages more than once, including shared frame mappings; GPU counters include driver allocations. Sampling does not capture every transient peak. This includes background scoring and window-size changes and must not be equated to image-buffer sizes alone. Resource ownership is also tested independently by scene-change texture/mapping counts and full clearing of the eight-slot 4K workload.
 
 ## Reproduction tools
 
@@ -66,7 +66,9 @@ The native scripts use the local WebView2 debugging port 9223. Close other Ayori
 
 `cargo build --manifest-path src-tauri/Cargo.toml --release --features diagnostics` enables a fixed synthetic transfer buffer for the two benchmark scripts. Plain Cargo builds use the Vite frontend; start `npm run dev` separately. The feature is disabled in the normal `npm run desktop:build` output. The transfer scripts store measurement results only in ignored `local-fixtures/`.
 
-The diagnostics build also supports `scripts/benchmark-shared.mjs` and `scripts/verify-transport.mjs`. The latter compares every byte against raw packets for PNG8/PNG16/AVIF10/AVIF12, checks re-upload and stale scene ownership, verifies script buffers detach on release, and checks native counts after disposal/navigation. Native smoke, workflows, the user WEBP pairs, scaling emulation, and eight-slot 4K checks also pass through the new transport. Final normal artifact rebuild is pending.
+The diagnostics build also supports `scripts/benchmark-shared.mjs` and `scripts/verify-transport.mjs`. The latter compares every byte against raw packets for PNG8/PNG16/AVIF10/AVIF12, checks re-upload and stale scene ownership, verifies script buffers detach on release, and checks native counts after disposal/navigation. Native smoke, workflows, the user WEBP pairs, scaling emulation, and eight-slot 4K checks also pass through the new transport. The final normal artifact was rebuilt and packaged checks passed afterward.
+
+Final local checks: 19 Rust tests, 15 frontend tests, zero Svelte errors/warnings, strict all-feature/all-target Clippy, Rust formatting, and a clean production dependency audit. Windows implementation and available local validation are complete. External qualification below remains explicitly open.
 
 ## Remaining qualification
 

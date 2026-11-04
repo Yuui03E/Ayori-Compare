@@ -6,7 +6,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 - Updated: 2026-11-04 (Asia/Dhaka).
 - Branch: `feat/desktop-app`.
-- Requirements review approved by the user. Core implementation and Windows transport improvement are complete; final artifact rebuild/verification is in progress. Linux validation is deferred at the user's request.
+- Requirements review approved by the user. Windows implementation and all validation available on this machine are complete, including the final packaged executable. Linux validation is deferred at the user's request; external hardware/clean-machine qualification remains open.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
 
@@ -20,7 +20,7 @@ This is the current handoff record. Read it before making changes and update it 
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
 | 4. Inspection tools | Implemented and smoke-verified | Modes, flicker, readout, eight mixed-depth 4K textures, and emulated 100/125/150/200% scaling pass. Physical mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
-| 6. Sharing and release | Sharing and final Windows executable verified; full qualification incomplete | Clipboard matches every captured pixel; offline HTML passes. Final executable is 8,285,184 bytes and packaged workflows pass. Linux/clean-machine/high-refresh testing and IPC improvement remain. |
+| 6. Sharing and release | Final Windows artifact verified; external qualification deferred | Clipboard matches every captured pixel; offline HTML passes. Final executable is 8,336,384 bytes, with packaged shared-buffer workflows verified. Linux, clean-machine, physical mixed-DPI and 240 Hz testing need other environments. |
 
 ## Completed steps
 
@@ -34,9 +34,9 @@ This is the current handoff record. Read it before making changes and update it 
 
 Windows now uses read-only WebView2 shared frame buffers with an unchanged raw AYRI fallback on other/older runtimes. Transfer median/p95 are below 5 ms; a 5.30 ms maximum remains an observed tail stall. Full source-byte equality, cancellation, release/detachment, bounded idle retention, reload cleanup, and existing native workflows pass. See `docs/RELEASE_VALIDATION.md` for evidence and reproducible commands.
 
-Next: rebuild and verify the normal packaged Windows artifact after these changes and record the final checkpoint. Broader AVIF and representative PNG corpus checks are complete. Linux/AppImage is explicitly deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks still require suitable environments.
+No remaining implementation task is identified for this Windows session. The final normal executable has been rebuilt and verified with the user's WEBP matrix and high-depth/subsampled AVIF inputs. Broader AVIF and representative PNG corpus checks are complete. Linux/AppImage is explicitly deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks still require suitable environments. The low-severity development-only upstream advisory remains documented, with no published fix.
 
-Current executable: `src-tauri/target/release/ayori-compare.exe`. Development command: `npm run desktop`. Development verification tools used a WebView2 debugging port of 9223. A development app and Vite server may still be running; inspect before starting duplicate instances.
+Current executable: `src-tauri/target/release/ayori-compare.exe` — **8,336,384 bytes**, SHA-256 `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Development command: `npm run desktop`. The test app was closed through its custom close control; no Ayori process remained. An existing Vite server may still be running; inspect before starting another.
 
 ### 2026-11-04 — Foundation verified
 
@@ -154,3 +154,12 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 - Added an ignored benchmark corpus generator. Four user WEB-DL frames were copied, resized to 2560×1440 and saved as RGBA8 PNGs solely for the benchmark. Originals are unchanged. Warm four-thread read+decode: **30.44 ms median / 31.38 ms p95 / 31.89 ms max**, passing <35 ms in this run. Compressed sizes range from 3.82 to 4.48 MB.
 - Four high-entropy RGBA8 PNGs (14,748,233 bytes each) measured **8.96 ms median / 10.18 ms p95 / 10.34 ms max**. Incompressible data uses inexpensive stored deflate blocks, so file size alone does not predict decode cost. Resident real-image decode separately measured 29.20 ms median / 41.10 ms p95, showing background timing variation; no universal/cold-cache performance claim is made.
 - Next: final normal Windows build, packaged workflow/clipboard verification, visual inspection, and final release record.
+
+### 2026-11-04 — Final Windows delivery checkpoint
+
+- `npm run desktop:build` passes; normal executable is **8,336,384 bytes (8.34 MB decimal)**. SHA-256: `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Diagnostics commands and development workspace access are absent.
+- Packaged two-source/four-scene user WEBP matrix passes import, scene switching, source selection, copying, maximize/restore, and shared-buffer use/release (6 received, 4 released, 2 resident). A second packaged import of identity AVIF10/12 plus subsampled full/limited YUV AVIF10/12 passes with four shared source buffers and no frontend errors.
+- Native clipboard reader verifies all **1,296,000 RGBA pixels** match the captured 1440×900 canvas. Visually inspected the actual final Windows comparison, split view and high-depth ramp. Custom minimize succeeds, restore succeeds, and custom close exits the process.
+- Final checks: **19 Rust tests, 15 frontend tests**, zero Svelte errors/warnings, strict all-feature/all-target Clippy, Rust formatting, and production npm audit (zero vulnerabilities). CI now checks all features too. Existing native/offline workflows remain green.
+- Updated 20-second fresh-release workload memory observation: peak private 573,001,728 bytes, aggregate working sets 665,268,224 bytes, dedicated GPU 227,856,384 bytes, shared GPU 75,370,496 bytes. These are sampled observations, with shared pages potentially counted twice, not guaranteed ceilings.
+- Windows work available on this host is complete. Linux validation is deferred per user request. Remaining external checks are clean-machine WebView2 prerequisites, physical mixed-DPI monitors and 240 Hz presentation. The 5.30 ms observed transfer maximum and two low-severity development-only upstream advisories remain explicitly recorded; no universal latency guarantee or full cross-platform qualification is claimed.
