@@ -5,7 +5,7 @@ This is the current handoff record. Read it before making changes and update it 
 ## Current position
 
 - Updated: 2026-11-04 (Asia/Dhaka).
-- Branch: `codex/shortcuts-large-comparisons`.
+- Branch: `main`.
 - The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
@@ -20,7 +20,7 @@ This is the current handoff record. Read it before making changes and update it 
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
 | 4. Inspection tools | Implemented and smoke-verified | Modes, flicker, readout, eight mixed-depth 4K textures, and emulated 100/125/150/200% scaling pass. Physical mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
-| 6. Sharing and release | Final Windows artifact verified; external qualification deferred | Clipboard matches every captured pixel; offline HTML passes. Current executable is 8,486,912 bytes. Linux, clean-machine, physical mixed-DPI and 240 Hz testing need other environments. |
+| 6. Sharing and release | Final Windows artifact verified; external qualification deferred | Clipboard matches every captured pixel; offline HTML passes. Published v0.1.0 executable is 8,501,248 bytes. Linux, clean-machine, physical mixed-DPI and 240 Hz testing need other environments. |
 | 7. Large collections and configurable UI | Complete; final Windows package verified | 100-image and 100-folder comparisons, bounded residency, searchable A/B selection, 53 editable actions, saved preferences, live hover help and richer UI pass. 22 frontend + 21 Rust tests. |
 
 ## Completed steps
@@ -35,7 +35,9 @@ This is the current handoff record. Read it before making changes and update it 
 
 The latest requested features are complete. Images are alternatives of one scene; folders represent releases/encoding groups with matching frame rows. Browse all searches arbitrary A/B sources. Settings contains 53 editable actions and interface preferences, saved locally. Large comparisons prepare selected/nearby images on demand while keeping at most eight resident; cold selection is not an instant-switch guarantee. Exact source samples, sparse cells and stale-work safeguards remain intact.
 
-Current normal executable: `src-tauri/target/release/ayori-compare.exe` — **8,486,912 bytes**, SHA-256 `a1388e87be74aafed3780def0160a290984d5f2e38cafe08aec22339dd00d41a`. The corrected final package passes 100-image UI workflows, saved shortcuts, tooltip updates, minimum-window layout and the user's WEBP matrix; every clipboard pixel matches. The custom close control exits, and no Ayori process remains. An existing Vite server on port 1420 may still be running; inspect before starting another.
+Current released executable: [Ayori v0.1.0](https://github.com/Yuui03E/Ayori-Compare/releases/tag/v0.1.0), **8,501,248 bytes**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. The preserved local app is in the sibling `Ayori Local` folder. Final packaged validation, the Facet identity and publication evidence are recorded in the dated entries below. Generated build caches were removed during source cleanup; run `npm ci` before rebuilding.
+
+The standalone video project is in the sibling Desktop folder `Ayori_trailer`, with the user's saved MP4 at its root and reproducible output under `renders/`. Its source is tracked in a separate local Git repository. Consult the latest dated entries for README publication status.
 
 No further implementation task from the current request remains. Linux/AppImage remains deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks need suitable environments. Earlier timing/memory measurements in `RELEASE_VALIDATION.md` describe the preceding baseline; they were not rerun as performance claims for the new UI. The upstream development-only advisory remains documented.
 
@@ -330,3 +332,32 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Kept the real application screenshot prominent, organized features into a compact four-cell grid and retained a three-step comparison workflow. Build instructions are collapsible. Download prerequisites, precision/scaling notes, contribution guidance and licensing remain accessible as text.
 - Verified GitHub's Markdown API preserves the picture/source element, download link and build disclosure. Rendered that HTML with GitHub Markdown styling and visually inspected dark/light desktop views plus a 390px mobile view. Images load, no horizontal overflow occurs, and the build section opens. The surrounding theme remains GitHub-controlled; the SVG artwork stays black in both themes.
 - Application code, screenshot pixels, release executable, dependencies and lockfiles are unchanged. No application build/tests were repeated for this documentation-only update. Video work remains deferred; existing release-validation limitations remain unchanged.
+### 2026-11-04 — Automated Ayori trailer sources and native footage prepared
+
+- Created `Ayori_trailer` with an editable 60-second, 1920×1080/30fps HyperFrames composition, selected storyboard, original seeded coastal artwork, and the user-approved locally synthesized instrumental score. The two supplied videos informed typography and rhythm; none of their assets are redistributed.
+- Captured the published Windows app with original images: curtain, split, difference/heatmap, contours/shadows, reversible zoom, loupe/readout, ten source folders containing 100 images, shortcut/interface settings, file reload and a real offline HTML viewer. Capture assertions pass for zoom restoration, zero frontend errors and zero offline network requests. Capture uses a separate WebView2 profile and restores settings before closing its own process.
+- Initial visual review corrected crowded captions and refitted the difference/banding image. HyperFrames runtime, layout, contrast and craft checks pass with no findings. Local audio was normalized with FFmpeg; final encoded-video audio measurement remains pending. Pinned trailer dependencies have zero reported npm audit vulnerabilities after the compatible Undici override.
+- Added one-command generation/capture/render/verification scripts, license attribution and source-only Git ignores. Application source and the published executable are unchanged.
+- Next: finish scene/transition review, verify the persistent preview, run the complete generation/render pipeline, inspect decoded final frames and record final artifact measurements. The trailer is not yet marked delivered.
+
+### 2026-11-04 — Automated Ayori trailer delivered locally
+
+- Completed the 60-second trailer in `Ayori_trailer/renders/Ayori-Trailer-1080p.mp4`: **8,560,507 bytes**, **1920×1080**, **30 fps / 1,800 frames**, SHA-256 `4fb1dc45404c5a1466f8ed50651e75426a6d835340dc7ec2f3dc04ce16f65665`. The approved logo, real native feature footage and original locally synthesized score are included. A poster, decoded contact sheet and machine-readable verification report accompany the video.
+- Ran the complete `npm run build` workflow successfully, then rechecked and rendered the final camera-state correction. The final HyperFrames check has zero lint/runtime/layout/contrast/craft findings. Reviewed scene/phone/transition sheets, received a separate visual review, fixed small split views and the overexposed banding ending, and inspected the final decoded contact sheet and corrected zoom entrance.
+- Verified 60.000-second output and AAC 48 kHz stereo at **−15.3 LUFS integrated / −2.61 dBTP**. HyperFrames audio analysis reports no warnings. Audio was measured, not listened to by the agent. The native capture checks confirm restored zoom, no frontend errors and no offline viewer network requests.
+- The editable preview responds on localhost port 3002. The project has a pinned npm lockfile, one-command build, optional verified release download, separate WebView2 capture profile, source/media provenance, and documented limits. Generated footage, music, render output, sample libraries, dependencies, thumbnails and caches are excluded from Git. Trailer dependency audit reports zero vulnerabilities; application source, root lockfiles and release executable are unchanged.
+- Requested local trailer and automation are complete. No video or source publication was performed for this task. Recapture requires Windows/WebView2; a new-machine build and subjective listening remain unqualified. Further copy, timing or soundtrack refinements can follow the user's review.
+
+### 2026-11-04 — Trailer relocated into a standalone Desktop project
+
+- Moved the complete trailer project from the application checkout to the sibling Desktop folder `Ayori_trailer`, including 7,177 files of source, dependencies, generated media and editing history. Verified every moved file's size and all 44 tracked source files by SHA-256 before making path corrections. Moved the user's separately saved MP4 into the new project root and verified its original checksum; the render copy remains intact.
+- Included the MIT license and approved logo in the standalone project, removed the dependency on the application source directory, corrected the optional local executable lookup, and changed documentation links to the public application guide. Asset generation and the existing full-video verification pass from the new location; the MP4 remains 8,560,507 bytes with SHA-256 `4fb1dc45404c5a1466f8ed50651e75426a6d835340dc7ec2f3dc04ce16f65665`.
+- The relocated HyperFrames check ran its browser checks and reports zero lint/runtime/layout/contrast/craft findings. Derived and visually reviewed a full-length silent README GIF: 800×450, 720 frames, 60 seconds, infinite loop, 4,899,606 bytes. GitHub's Markdown API confirms `<video>` autoplay markup is removed. The original 1080p video retains its soundtrack.
+- Next: publish the two media files, verify their public downloads and the README image, and finish separating the local source history before pushing the README update. No application code or dependency lockfile was changed.
+
+### 2026-11-04 — Trailer media published and README prepared
+
+- Uploaded `Ayori-Trailer-1080p.mp4` and `Ayori-README-preview.gif` to the existing v0.1.0 release. Anonymous downloads match both source SHA-256 values; the GIF checksum is `4cd6cce8bb4e286a1a0aaeb7fe6dc4bcea1a93a808805941acaef9d6a71eaec9`. The Windows executable and release tag are unchanged.
+- Prepared the README's linked animated preview and full-video download caption, preserving the native screenshot in a disclosure. GitHub's Markdown renderer marks the image as animated and retains the video links. The rendered image URL returns the exact 720-frame, 60-second, infinitely looping GIF, and all nine local README links resolve. GitHub/browser motion preferences can pause animation; MP4 autoplay and first-visit tracking are not available in README Markdown.
+- Saved the independent trailer repository in local commit `7d5337e` with 47 source/license files and its npm lockfile; generated media and working records remain ignored. Preserved the original unpublished app-repository trailer commit on local branch `codex/trailer-source-archive`, then based the application update on the existing public main without trailer sources. No force-push is required. The moved preview responds on port 3002.
+- Next: push the README/documentation update and verify the live public main tree and rendered README. No application build or correctness-suite rerun is needed for these documentation and media changes.

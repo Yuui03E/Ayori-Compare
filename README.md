@@ -18,9 +18,18 @@
 
 Compare frames from different releases, spot encoding artifacts and inspect original pixel values—all in a compact, pure-black workspace.
 
+[![Ayori's 60-second feature trailer: compare, inspect, organize and share](https://github.com/Yuui03E/Ayori-Compare/releases/download/v0.1.0/Ayori-README-preview.gif)](https://github.com/Yuui03E/Ayori-Compare/releases/download/v0.1.0/Ayori-Trailer-1080p.mp4)
+
+<p align="center"><sub>60-second looping preview · Silent · <a href="https://github.com/Yuui03E/Ayori-Compare/releases/download/v0.1.0/Ayori-Trailer-1080p.mp4">Download the full 1080p trailer with sound</a></sub></p>
+
+<details>
+<summary>View the application screenshot</summary>
+
 ![Ayori's compact black interface comparing reference and quantized samples with a vertical curtain](docs/images/ayori-comparison.png)
 
 <p align="center"><sub>Actual Ayori interface · Reference on the left, quantized on the right · Built-in sample</sub></p>
+
+</details>
 
 ## Built for the details
 

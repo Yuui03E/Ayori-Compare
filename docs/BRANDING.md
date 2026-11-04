@@ -22,3 +22,11 @@ To refresh it, open **Explore a sample comparison**, select A = Reference and B 
 `docs/images/readme-banner.svg` carries the black, mint and warm-white identity into the project page. Its overlapping A/B frames are brand artwork; the application screenshot below remains the native capture. The compact banner in the same folder is selected below 600px through a GitHub-compatible `<picture>` element. Both banners retain the master's exact three Facet paths.
 
 `docs/images/download-windows.svg` is the mint download link artwork. All three SVGs are self-contained, use system fonts and contain no scripts, embedded raster data or external resources. Keep their palette aligned with the master and preserve readable text alternatives in the README. GitHub controls the surrounding page colors; the artwork retains its black background in either theme.
+
+## README trailer
+
+The README embeds the complete 60-second trailer as a silent, looping **800×450 / 12 fps GIF**. GitHub removes `<video>` and autoplay attributes from README Markdown, so a visitor does not need to press Play for this preview. Browser and GitHub animation preferences can still pause it. The image and its caption link to the original **1920×1080 / 30 fps MP4 with stereo sound**.
+
+Both files are hosted as assets of the [v0.1.0 release](https://github.com/Yuui03E/Ayori-Compare/releases/tag/v0.1.0); the application source tree contains no trailer project or video binaries. The original app screenshot remains available in a disclosure beneath the preview.
+
+The separately maintained `Ayori_trailer` project contains its own logo, license, dependencies and generation scripts. Run `npm run readme` there to derive the GIF from the verified MP4. Its source imagery is the original Lighthouse at Blue Hour artwork, and its footage comes from the published Windows app. The GIF is a reduced-resolution promotional preview, not a precision comparison export.
