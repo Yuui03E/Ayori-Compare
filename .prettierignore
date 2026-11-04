@@ -1,8 +1,10 @@
 node_modules
 dist
+releases
 src-tauri/target
 src-tauri/gen
 .tools
 local-fixtures
 package-lock.json
 docs
+src-tauri/icons

@@ -72,6 +72,7 @@ These decisions supersede any implication that all scenes are complete or that a
 - Add more keyboard actions and a user-editable shortcut interface, with saved assignments and descriptive hover help on controls.
 - Preserve the current typography and dark styling while making the UI richer, more attractive and more informative. A searchable source browser, explicit A/B metadata, visible mode labels, source/image counts, import guidance and dedicated settings implement this direction.
 - Eight remains an internal limit on resident comparison images, not an import limit. Large collections prepare newly selected images on demand; the original immediate-switch target applies to already-loaded sources. Physical hardware and Linux qualification remain as recorded in `PROGRESS.md`.
+- Prepare the project for GitHub, removing unused artwork and generated/local files while preserving source, tests, lockfiles and validation history. The user confirmed open-source use, modification and improvement by others; MIT is the selected license for Ayori's original code and artwork. Third-party fixtures retain their existing notices.
 
 ## 5. Architecture we will carry forward
 

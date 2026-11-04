@@ -2,24 +2,32 @@
 
 ![Ayori Facet icon](src-tauri/icons/128x128.png)
 
-A Windows-first desktop image comparison tool for anime encoders. Built with Tauri 2, Rust, Svelte 5, and WebGL2.
+A free, open-source desktop image comparison tool for anime encoders and anyone inspecting differences between images. Built with Tauri 2, Rust, Svelte 5 and WebGL2. Windows is the primary platform; Linux builds are supported, with runtime qualification still pending.
 
-Ayori uses the approved **Facet** identity across its interface, native app icons and offline comparisons. [Brand artwork and regeneration](design/BRANDING.md).
+## Features
 
-Open individual images to compare alternatives of one frame, or one folder per release/encoding group to match scenes by filename or frame number. Collections can contain 100+ images or sources; selected and nearby images load as you browse. Click either source name or **Search** (`Ctrl+K`) to assign A/B, and **+ → Add sources** to extend a comparison.
+- Compare individual PNG, WebP, AVIF and JPEG images, or match frames across folders from different releases and encoding groups.
+- Browse 100+ images or sources with searchable A/B selection and explicit missing-frame indicators. Selected and nearby images load on demand; eight images may be resident at once, rather than limiting imports to eight.
+- Inspect flicker, curtains, synchronized split views, differences, banding, luma and chroma, with a dual loupe and exact source pixel readout.
+- Compare high-depth PNG/AVIF sources. Reduced-precision previews are labeled, while readout retains the original decoded samples.
+- See regenerated frames update in place, copy the comparison as PNG, or export a self-contained offline HTML viewer.
+- Customize shortcuts, hover help and a pure-black top bar from 16–44px high.
 
-A pure-black top bar keeps A/B, inspection modes, scenes and zoom close at hand. Hover or focus a control for compact details and its current shortcut. **View options** contains zoom presets, filtering, effect strength and offline HTML export. Source metadata and scores appear on hover instead of covering the image. Adjust the height from **16–44px** in **Help → Interface**; the default is 32px. The black canvas surround retains explicit missing-frame and transparency patterns.
+## Using Ayori
 
-**Help & shortcuts** (`F1` or `Ctrl+,`) starts with 12 essential actions, led by flicker, fit/100%, loupe and comparison modes. Search any action or choose **Show more shortcuts** for optional bindings. Every assignment is editable with conflict checking and automatic local saving; existing custom assignments are preserved. **Using & comparing** covers imports, navigation, sharing, frame alignment, detail, banding and interpreting scores. A compact App row links to the editable window commands: **Q** quits, **Ctrl+M** minimizes, **F10** maximizes/restores, and **Alt+Home** opens Home. These shortcuts do not run while typing or using a dialog. Home keeps the comparison ready to resume with the same scene, sources, mode, pan and zoom. Existing custom assignments are preserved when new defaults are added.
+Open individual images as alternatives of one scene, or one folder per release/encoding group to match scenes by filename or frame number. Click either source name or **Search** (`Ctrl+K`) to assign A/B. Use **+ → Add sources** to extend the comparison. Ayori accepts extracted images; it does not decode video files or discs directly.
 
-- [Current implementation status and resume point](docs/PROGRESS.md)
-- [Approved requirements and execution plan](docs/requirements_review_and_execution_plan.md)
-- [Original product requirements](docs/product_requirements_document_prd.md)
-- [Release checks, benchmarks, and remaining qualification](docs/RELEASE_VALIDATION.md)
+Hover or focus controls for compact explanations, metadata and current shortcuts. **View options** contains zoom presets, filtering, effect strength and offline export. **Help & shortcuts** (`F1` or `Ctrl+,`) starts with essential actions; optional bindings are searchable and every assignment is editable. Its **Using & comparing** guide covers alignment, detail, banding and interpreting scores.
 
-Double right click the image to jump to **200%** at the pointer; repeat to restore your previous zoom and pan. Choose any target from **1–12800%**, or disable the gesture, in **Help → Interface**. Right hold or drag still opens the dual loupe. Offline exports include the same gesture with a session-specific target.
+Default app shortcuts are **Q** to quit, **Ctrl+M** to minimize, **F10** to maximize/restore and **Alt+Home** to return Home. Home preserves the comparison for resuming. App shortcuts stay inactive while typing or using a dialog.
 
-Mixed resolutions fill a shared area using the largest scene width and height: 720p and 1080p both occupy a 1920×1080 area at 100%. Auto uses nearest sampling at 100% and above, and smooth filtering below; Bilinear is available in View options. Originals and exact source readout stay unchanged. Different aspect ratios stretch to fit, so match framing/crop before judging quality. Display scaling is not bicubic; SSIMULACRA2 separately resizes source 1 to each candidate using Catmull–Rom.
+Double right click to zoom to **200%** at the pointer; repeat to restore the previous zoom and pan. Set a target from **1–12800%**, or disable the gesture, in **Help → Interface**. Right hold or drag opens the dual loupe. Offline exports support the same zoom gesture.
+
+### Comparing different resolutions
+
+Images fill a shared area using the largest scene width and height: 720p and 1080p images both occupy a 1920×1080 area at 100%. Auto uses nearest sampling at 100% and above, and smooth filtering below; Bilinear is also available. Originals and exact source readout stay unchanged. Different aspect ratios stretch to fit, so match framing and crop before judging quality. Display scaling is not bicubic; SSIMULACRA2 separately resizes source 1 to each candidate using Catmull–Rom.
+
+Large collections load as you browse, and offline export size grows with the included images. See [release validation](docs/RELEASE_VALIDATION.md) for measured performance, precision caveats and remaining platform checks.
 
 ## Development
 
@@ -30,15 +38,38 @@ npm ci
 npm run desktop
 ```
 
+To verify and build a portable release:
+
 ```sh
-npm run check
+npm run build
 npm test
-cargo test --manifest-path src-tauri/Cargo.toml
+cargo fmt --manifest-path src-tauri/Cargo.toml --check
+cargo test --manifest-path src-tauri/Cargo.toml --locked
 npm run desktop:build
 ```
 
-The portable Windows executable is delivered as **`releases/Ayori.exe`**. The build copies it from Cargo's output and verifies the SHA-256 matches; `node scripts/prepare-portable.mjs` can prepare this copy from an existing build. WebView2 is a runtime prerequisite. Build a Linux AppImage on a Linux host using `npm run tauri -- build --bundles appimage`.
+Run the frontend build before direct Cargo checks because Rust embeds the offline viewer. NASM must be on PATH or provided through the `NASM` environment variable. The desktop launcher also recognizes an optional local `.tools/nasm-3.02/nasm.exe`.
 
-Explorer may retain an old logo in its Details preview after an executable is replaced at the same path. Use the portable copy above; it has the approved Facet resources. If an already-open Details pane remains stale, close and reopen that Explorer window.
+The portable Windows executable is **`releases/Ayori.exe`**. The build copies it from Cargo's output and verifies the SHA-256 matches; `node scripts/prepare-portable.mjs` can prepare this copy from an existing build. WebView2 is a runtime prerequisite. Build a Linux AppImage on a Linux host using `npm run tauri -- build --bundles appimage`.
 
-Progress and measured limitations are recorded after each step in `docs/PROGRESS.md`.
+Generated executables belong in GitHub Releases, not the source repository. Dependencies, build output, private frames and local tools are ignored. Install dependencies again with `npm ci` after cleaning them. GitHub Actions builds and checks Windows and Linux; published validation records distinguish local results from checks that need other environments.
+
+## Project layout
+
+| Path                 | Contents                                                                   |
+| -------------------- | -------------------------------------------------------------------------- |
+| `src/`               | Svelte interface, WebGL renderer, offline viewer and frontend tests        |
+| `src-tauri/`         | Rust backend, native configuration, icons and small licensed test fixtures |
+| `scripts/`           | Build helpers, native verification and benchmarks                          |
+| `docs/`              | Requirements, implementation decisions, branding and validation records    |
+| `.github/workflows/` | Automated build and verification                                           |
+
+## Contributing and license
+
+Forks, improvements and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and contribution guidance. Ayori is licensed under [MIT](LICENSE); third-party fixtures retain their own license notices.
+
+- [Development scripts and native checks](scripts/README.md)
+- [Brand artwork and icon generation](docs/BRANDING.md)
+- [Current implementation status](docs/PROGRESS.md)
+- [Approved requirements and execution plan](docs/requirements_review_and_execution_plan.md)
+- [Original product requirements](docs/product_requirements_document_prd.md)

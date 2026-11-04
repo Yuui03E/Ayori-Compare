@@ -1,5 +1,7 @@
 name: Build and verify
 on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
 jobs:
   desktop:
     strategy:
@@ -42,7 +44,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $bytes = (Get-Item src-tauri/target/release/ayori-compare.exe).Length
+          $bytes = (Get-Item releases/Ayori.exe).Length
           if ($bytes -ge 10000000) { throw "Executable exceeds the 10 MB target: $bytes bytes" }
           Write-Output "Portable executable: $bytes bytes"
       - name: Linux AppImage
@@ -51,6 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ayori-compare-${{ runner.os }}
+          if-no-files-found: error
           path: |
-            src-tauri/target/release/ayori-compare.exe
+            releases/Ayori.exe
             src-tauri/target/release/bundle/appimage/*.AppImage

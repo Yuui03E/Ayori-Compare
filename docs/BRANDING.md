@@ -4,9 +4,9 @@ The user selected **A / Facet** from the logo studies on 2026-11-04. Preserve it
 
 - Master: `src/lib/assets/ayori.svg` — transparent, editable SVG used by the title bar, Home, browser favicon and offline viewer.
 - Palette: pale mint `#AFE6D3`, warm white `#F0ECE2`, green `#60AE97`. Interface backgrounds remain pure black.
-- Native icons: `src-tauri/icons/app-icon.svg` places the mark on a black rounded tile with a restrained green edge. PNG, ICO, ICNS and platform variants derive from it.
-- Regenerate with `node scripts/generate-icons.mjs`. It reads the master, recreates the tile and runs the checked-in Tauri CLI dependency. Commit the generated native assets when changing the identity.
+- Native icons: `src-tauri/icons/app-icon.svg` places the mark on a black rounded tile with a restrained green edge. The Windows ICO and Linux/Windows PNG sizes derive from it.
+- Regenerate with `node scripts/generate-icons.mjs` after `npm ci`. It reads the master, recreates the tile and runs the pinned Tauri CLI dependency. Only the six PNG/ICO assets used for Windows/Linux are retained; other platform variants are generated in a temporary directory and discarded. Commit the generated native assets when changing the identity.
 - The title bar retains its existing 16–44px sizing and font. Its existing minimal mode hides the decorative logo below 24px to keep space for controls. Home uses the mark in the existing central preview badge, without adding another panel or increasing vertical space.
 - Offline HTML inlines the same vector, including its favicon, and requires no network access for branding.
 
-The alternatives in `design/logo-concepts` remain historical studies. They are not used by the application.
+Earlier logo studies are retained in Git history. The current source tree contains only the approved identity.
