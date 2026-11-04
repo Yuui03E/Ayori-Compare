@@ -1,6 +1,6 @@
 # Ayori Compare: requirements review and execution plan
 
-Reviewed: 2026-11-04 (Asia/Dhaka).
+Reviewed: 2026-11-04.
 
 Status: requirements review complete; application implementation has not started. This document records the product understanding, confirmed clarifications, engineering gaps, and proposed delivery sequence. It supplements the original documents without rewriting them. Recommendations below are not additional user-approved requirements.
 

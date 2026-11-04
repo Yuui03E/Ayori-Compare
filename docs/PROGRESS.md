@@ -4,7 +4,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Current position
 
-- Updated: 2026-11-04 (Asia/Dhaka).
+- Updated: 2026-11-04.
 - Branch: `main`.
 - The trailer is published in the GitHub README; its standalone source and the user's saved video live in the sibling Desktop folder `Ayori_trailer`.
 - The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
