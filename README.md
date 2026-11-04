@@ -8,6 +8,8 @@
 
 <p align="center"><strong>Windows · PNG · WebP · AVIF · JPEG · MIT</strong></p>
 
+<p align="center"><a href="https://github.com/Yuui03E/Ayori-Compare/releases/latest/download/Ayori.exe"><strong>Download for Windows</strong></a> · <a href="https://github.com/Yuui03E/Ayori-Compare/releases">All releases</a></p>
+
 ![Ayori's compact black interface comparing reference and quantized samples with a vertical curtain](docs/images/ayori-comparison.png)
 
 <p align="center"><sub>The built-in sample: reference on the left, quantized on the right.</sub></p>
@@ -21,6 +23,8 @@
 - **Make it yours.** Editable shortcuts, contextual help and a pure-black toolbar adjustable from 16–44px.
 
 ## Getting started
+
+Download **Ayori.exe** above and run it on Windows 10/11 x64. No installation is needed; the [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) must be available.
 
 1. Open individual images to compare alternatives of one frame, or folders to match scenes by filename or frame number.
 2. Choose sources **A** and **B**, then select a comparison mode. Use **+ → Add sources** to extend the collection.

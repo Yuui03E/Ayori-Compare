@@ -309,3 +309,9 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Restored the original automatic-toolbar-hiding preference and closed the app instance used for capture. Updated contribution guidance to distinguish curated documentation images from temporary verification captures.
 - Verified README/comparison-guide local links, screenshot decoding/dimensions and whitespace checks. This is a documentation-only change: application code, native assets, dependencies and executable are unchanged, so build/correctness suites were not repeated.
 - Next: add a video demo in a later phase or publish to GitHub when requested. Existing platform qualification and local-tooling limitations remain unchanged.
+
+### 2026-11-04 — First GitHub release prepared
+
+- The user authorized publishing the codebase to `Yuui03E/Ayori-Compare` and a portable or setup build to Releases. The destination is an empty public repository, and the authenticated account has push access. Selected a single Windows x64 portable `Ayori.exe`, matching the existing version **0.1.0**.
+- Reverified the preserved 8,501,248-byte executable against SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. Application code and native icons have not changed since its packaged validation. Added the public download/release links and Windows/WebView2 instructions to the README.
+- Next: push `main`, tag `v0.1.0`, publish the release asset and verify the public download. No new build or remote CI result is claimed by this preparation step.
