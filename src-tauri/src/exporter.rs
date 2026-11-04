@@ -62,9 +62,11 @@ pub fn export(matrix: &ComparisonMatrix, path: &Path) -> Result<(), String> {
             .write_all(include_bytes!("offline-template.html"))
             .map_err(|e| e.to_string())?;
         write!(writer,"<script id=\"manifest\" type=\"application/json\">{manifest}</script><script id=\"packets\" type=\"application/json\">[").map_err(|e|e.to_string())?;
+        let mut sizes = Vec::with_capacity(paths.len());
         for (i, p) in paths.iter().enumerate() {
             let frame =
                 decoder::decode(Path::new(p)).map_err(|e| format!("Cannot export {p}: {e}"))?;
+            sizes.push([frame.width, frame.height]);
             let mut compressor = ZlibEncoder::new(Vec::new(), Compression::fast());
             compressor
                 .write_all(&frame.packet())
@@ -75,9 +77,12 @@ pub fn export(matrix: &ComparisonMatrix, path: &Path) -> Result<(), String> {
             }
             write!(writer, "\"{}\"", STANDARD.encode(compressed)).map_err(|e| e.to_string())?;
         }
-        writer
-            .write_all(b"]</script><script>")
-            .map_err(|e| e.to_string())?;
+        write!(
+            writer,
+            "]</script><script id=\"sizes\" type=\"application/json\">{}</script><script>",
+            serde_json::to_string(&sizes).map_err(|e| e.to_string())?
+        )
+        .map_err(|e| e.to_string())?;
         writer
             .write_all(include_bytes!("../../dist/offline.js"))
             .map_err(|e| e.to_string())?;

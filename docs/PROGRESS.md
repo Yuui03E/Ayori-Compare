@@ -5,8 +5,8 @@ This is the current handoff record. Read it before making changes and update it 
 ## Current position
 
 - Updated: 2026-11-04 (Asia/Dhaka).
-- Branch: `feat/desktop-app`.
-- Requirements review approved by the user. Windows implementation and all validation available on this machine are complete, including the final packaged executable. Linux validation is deferred at the user's request; external hardware/clean-machine qualification remains open.
+- Branch: `codex/shortcuts-large-comparisons`.
+- The user requested editable/expanded shortcuts, descriptive hover help, support for 100-image collections, and richer UI while preserving the current typography and dark style. This supersedes the original eight-source product limit. Core implementation and development integration checks pass; final packaging of these additions is in progress. Linux validation remains deferred.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
 
@@ -31,6 +31,8 @@ This is the current handoff record. Read it before making changes and update it 
 - No application build has been verified yet.
 
 ## Resume here
+
+The latest work adds large collections and configurable shortcuts. Read the new entries at the end before using the earlier Windows delivery checkpoint: its executable predates these additions. Final packaging and verification of the additions are the next step.
 
 Windows now uses read-only WebView2 shared frame buffers with an unchanged raw AYRI fallback on other/older runtimes. Transfer median/p95 are below 5 ms; a 5.30 ms maximum remains an observed tail stall. Full source-byte equality, cancellation, release/detachment, bounded idle retention, reload cleanup, and existing native workflows pass. See `docs/RELEASE_VALIDATION.md` for evidence and reproducible commands.
 
@@ -170,3 +172,12 @@ Current executable: `src-tauri/target/release/ayori-compare.exe` — **8,336,384
 - Re-ran all **19 Rust tests** with all features and the locked dependencies, all **15 frontend tests**, Svelte checks (zero errors/warnings), and Rust formatting. All passed. Production npm audit again reports zero vulnerabilities; the full audit still reports the same two low-severity development-only findings with `fixAvailable: false`.
 - Verified that the existing Windows executable remains **8,336,384 bytes** and matches the final delivery SHA-256 `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Both lockfiles are tracked and the working tree was clean before this record. No application source or release binary changed, so the prior packaged GUI and clipboard evidence remains applicable; those checks were not repeated during this pass.
 - Next: clean-machine WebView2 testing, physical mixed-DPI/240 Hz checks when the appropriate environments are available, and Linux validation when the user resumes it on Linux. These checks remain open, and the measured transfer tail and memory limitations remain documented in `RELEASE_VALIDATION.md`.
+
+### 2026-11-04 — Large collections implemented and development-verified
+
+- Removed the eight-source import/append limit for image files and source folders. Files remain alternatives within one scene; folders represent releases/encoding groups with filename/frame-number matching across scenes. The user delegated the import choice and clarified these workflows; no arbitrary loose-file pairing is inferred.
+- Decoupled logical source numbers from the eight shader samplers. Up to eight selected/nearby sources retain exact decoded samples and GPU textures; four frontend decode jobs are scheduled at a time. A/B, previous-source flicker and four-quadrant sources remain in the working set. Superseded results are discarded and native mappings released.
+- Background dimension inspection establishes the entire scene's normalization size before final fit, so evicting the largest image cannot change alignment. Watch setup now runs on a worker. Large collections calculate scores for selected A/B sources against source 1, with obsolete metric jobs invalidated; cached preprocessing remains bounded.
+- Offline export includes every source, scene and exact packet, plus dimension metadata. The offline viewer loads a bounded working set and provides searchable A/B selectors. Encoded HTML size still grows with the collection; this does not make arbitrary collections cost-free or guarantee instant first loading.
+- Verification: **21 Rust tests** (17 unit + 4 AVIF worker), **21 frontend tests**, clean Svelte build and strict all-target/all-feature Clippy. New tests cover 100 files, append, 100 sparse source folders, shortcut correctness and large-collection stale work. Native generated 100-image comparison selects source 100 against source 50, checks an exact rendered pixel, keeps eight resident images, retains a stable 640×360 base and correctly reloads four quadrants. Initial 100-image offline export passes with no network requests/errors. The existing native precision, sparse-scene, hot reload, clipboard, scaling and eight mixed-depth 4K tests also pass.
+- Next: finish UI/editor verification and rebuild the normal Windows executable. The current release executable still belongs to the previous milestone.

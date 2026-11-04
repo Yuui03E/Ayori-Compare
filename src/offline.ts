@@ -1,6 +1,7 @@
 import { Renderer } from './lib/webgl/renderer';
 import { parseFrame, readPixel } from './lib/webgl/packet';
 import type { Mode, Point } from './lib/types';
+import { residentSlots } from './lib/residency';
 
 type Manifest = {
   sources: { label: string }[];
@@ -8,6 +9,7 @@ type Manifest = {
 };
 const manifest: Manifest = JSON.parse(document.getElementById('manifest')!.textContent!);
 const packets: string[] = JSON.parse(document.getElementById('packets')!.textContent!);
+const sizes: [number, number][] = JSON.parse(document.getElementById('sizes')!.textContent!);
 const canvas = document.querySelector('canvas')!;
 const status = document.getElementById('status')!,
   sources = document.getElementById('sources')!,
@@ -18,6 +20,9 @@ let scene = 0,
   previous = 1,
   pan: Point | null = null;
 let renderer: Renderer;
+let wanted = new Set<number>();
+const jobs = new Map<number, Promise<void>>();
+let errors = new Set<number>();
 function fail(error: unknown) {
   status.textContent = String(error);
 }
@@ -29,6 +34,46 @@ try {
 }
 const v = renderer.view;
 renderer.onError = fail;
+const picker = document.createElement('div');
+picker.className = 'source-picker';
+const search = document.createElement('input');
+search.type = 'search';
+search.placeholder = 'Find a source…';
+search.setAttribute('aria-label', 'Search sources');
+search.title = 'Filter sources by name or number.';
+const pickA = document.createElement('select'),
+  pickB = document.createElement('select');
+pickA.setAttribute('aria-label', 'Source A');
+pickB.setAttribute('aria-label', 'Source B');
+pickA.title = 'Choose the primary image A.';
+pickB.title = 'Choose the secondary image B.';
+function options() {
+  for (const [menu, slot, name] of [
+    [pickA, v.slotA, 'A'],
+    [pickB, v.slotB, 'B'],
+  ] as const) {
+    menu.replaceChildren();
+    manifest.sources.forEach((source, i) => {
+      if (
+        i !== slot &&
+        !`${i + 1} ${source.label}`.toLowerCase().includes(search.value.toLowerCase())
+      )
+        return;
+      const option = document.createElement('option');
+      option.value = String(i);
+      option.textContent = `${name}: ${i + 1} · ${source.label}`;
+      menu.append(option);
+    });
+    menu.value = String(slot);
+  }
+}
+search.oninput = options;
+pickA.onchange = () => select(Number(pickA.value));
+pickB.onchange = () => select(Number(pickB.value), true);
+picker.append(search, pickA, pickB);
+sources.before(picker);
+if (manifest.sources.length > 8) sources.hidden = true;
+options();
 manifest.scenes.forEach((s, i) => {
   const option = document.createElement('option');
   option.value = String(i);
@@ -47,10 +92,11 @@ manifest.sources.forEach((s, i) => {
   sources.append(button);
 });
 function badges() {
+  options();
   [...sources.children].forEach((el, i) => {
     el.classList.toggle('a', i === v.slotA);
     el.classList.toggle('b', i === v.slotB);
-    el.classList.toggle('missing', !renderer.frames[i]);
+    el.classList.toggle('missing', manifest.scenes[scene].frames[i] === null);
   });
 }
 function select(slot: number, secondary = false) {
@@ -62,22 +108,25 @@ function select(slot: number, secondary = false) {
   }
   badges();
   renderer.invalidate();
+  void syncFrames();
 }
 async function load(index: number) {
   const token = ++generation;
   scene = (index + manifest.scenes.length) % manifest.scenes.length;
   sceneSelect.value = String(scene);
   renderer.clear();
+  jobs.clear();
+  errors = new Set();
+  const dimensions = manifest.scenes[scene].frames.flatMap((id) =>
+    id === null ? [] : [sizes[id]],
+  );
+  renderer.setSceneSize(
+    dimensions.reduce((m, s) => Math.max(m, s[0]), 1),
+    dimensions.reduce((m, s) => Math.max(m, s[1]), 1),
+  );
   status.textContent = 'Loading scene…';
   try {
-    for (const [slot, id] of manifest.scenes[scene].frames.entries()) {
-      if (id === null) continue;
-      const bytes = Uint8Array.from(atob(packets[id]), (c) => c.charCodeAt(0));
-      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'));
-      const raw = await new Response(stream).arrayBuffer();
-      if (token !== generation) return;
-      renderer.upload(slot, parseFrame(raw));
-    }
+    await syncFrames();
     if (token !== generation) return;
     badges();
     renderer.fit();
@@ -88,9 +137,59 @@ async function load(index: number) {
     if (token === generation) fail(error);
   }
 }
+async function syncFrames() {
+  const token = generation;
+  const paths = manifest.scenes[scene].frames;
+  wanted = new Set(
+    residentSlots(
+      manifest.sources.length,
+      v.slotA,
+      v.slotB,
+      previous,
+      v.mode === 1 && v.subMode === 2,
+    ).filter((slot) => paths[slot] !== null),
+  );
+  renderer.frames.forEach((frame, slot) => {
+    if (frame && !wanted.has(slot)) renderer.remove(slot);
+  });
+  while (token === generation) {
+    for (const slot of wanted) {
+      if (jobs.size >= 2) break;
+      if (renderer.frames[slot] || errors.has(slot) || jobs.has(slot)) continue;
+      const id = paths[slot]!;
+      const job = (async () => {
+        const bytes = Uint8Array.from(atob(packets[id]), (c) => c.charCodeAt(0));
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'));
+        const raw = await new Response(stream).arrayBuffer();
+        if (token === generation && wanted.has(slot)) renderer.upload(slot, parseFrame(raw));
+      })()
+        .catch((error) => {
+          if (token === generation) {
+            errors.add(slot);
+            fail(error);
+          }
+        })
+        .finally(() => {
+          if (jobs.get(slot) === job) jobs.delete(slot);
+        });
+      jobs.set(slot, job);
+    }
+    if (!jobs.size) break;
+    await Promise.race(jobs.values());
+  }
+  if (token === generation) {
+    badges();
+    status.textContent = errors.size
+      ? `${errors.size} image(s) could not be loaded.`
+      : renderer.fallback.some(Boolean)
+        ? '8-bit preview · exact source readout retained'
+        : `${manifest.sources.length} sources · ${renderer.frames.filter(Boolean).length} ready · Source RGB / SDR`;
+  }
+}
 function mode(next: Mode) {
   const sub = v.mode === next ? (v.subMode + 1) % [1, 3, 1, 2, 4][next] : 0;
   renderer.setMode(next, sub);
+  void syncFrames();
   document
     .querySelectorAll<HTMLButtonElement>('[data-mode]')
     .forEach((el) => el.classList.toggle('active', Number(el.dataset.mode) === next));

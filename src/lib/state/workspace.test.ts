@@ -35,6 +35,12 @@ function setup() {
     upload: vi.fn((slot: number, f: Frame) => {
       frames[slot] = f;
     }),
+    remove: vi.fn((slot: number) => {
+      frames[slot]?.release?.();
+      frames[slot] = null;
+    }),
+    setSceneSize: vi.fn(),
+    setMode: vi.fn(),
     invalidate: vi.fn(),
     fit: vi.fn(),
     dispose: () => frames.fill(null),
@@ -61,6 +67,53 @@ afterEach(() => {
 });
 
 describe('asynchronous workspace lifetime', () => {
+  it('browses 100 sources with bounded residency and discards results evicted during selection', async () => {
+    const { w, renderer } = setup();
+    const paths = Array.from({ length: 100 }, (_, i) => `image${i}`);
+    w.matrix = {
+      sources: paths.map((path) => ({ label: path, origin: path, kind: 'file' })),
+      scenes: [{ id: 'all', label: 'All', frames: paths }],
+      warnings: [],
+    };
+    const pending = new Map<string, ReturnType<typeof deferred<ArrayBuffer>>>();
+    invoke.mockImplementation((cmd, args) => {
+      if (cmd === 'activate_scene') return Promise.resolve({ epoch: 1 });
+      if (cmd === 'scene_dimensions') return Promise.resolve(paths.map(() => [1, 1]));
+      if (cmd === 'load_frame_binary') {
+        if (args.path === 'image50') {
+          const request = deferred<ArrayBuffer>();
+          pending.set(args.path, request);
+          return request.promise;
+        }
+        return Promise.resolve(packet(Number(args.path.slice(5))));
+      }
+      return Promise.resolve();
+    });
+    await w.loadScene(0);
+    expect(w.frames.filter(Boolean).length).toBeLessThanOrEqual(8);
+    expect(invoke.mock.calls.filter(([cmd]) => cmd === 'load_frame_binary').length).toBe(8);
+    w.select(50);
+    await vi.waitFor(() => expect(pending.has('image50')).toBe(true));
+    w.select(99);
+    w.select(90); // 50 is neither selected nor the previous flicker source.
+    pending.get('image50')!.resolve(packet(50));
+    await vi.waitFor(() => {
+      expect(w.frames[90]?.pixels[0]).toBe(90);
+      expect(w.pendingSlots).toHaveLength(0);
+    });
+    expect(w.frames[50]).toBeNull();
+    expect(w.frames[99]?.pixels[0]).toBe(99);
+    expect(w.frames.filter(Boolean).length).toBeLessThanOrEqual(8);
+    expect(
+      renderer.upload.mock.calls.every(([slot, frame]) => slot !== 50 || frame.pixels[0] !== 50),
+    ).toBe(true);
+    w.setMode(1);
+    w.setMode(1);
+    w.setMode(1);
+    await vi.waitFor(() => expect(w.frames.slice(0, 4).every(Boolean)).toBe(true));
+    expect(w.frames.filter(Boolean).length).toBeLessThanOrEqual(8);
+    expect(renderer.setSceneSize).toHaveBeenCalledWith(1, 1);
+  });
   it('discards old scene packets and clears missing slots when loads finish out of order', async () => {
     const { w, renderer } = setup();
     const oldA = deferred<ArrayBuffer>(),

@@ -34,6 +34,7 @@ export class Renderer {
   private pending = 0;
   private fitLocked = true;
   private disposed = false;
+  private sceneSize: { width: number; height: number } | null = null;
   onChange: () => void = () => {};
   onError: (message: string) => void = () => {};
 
@@ -176,7 +177,8 @@ export class Renderer {
     const old = this.textures[slot];
     const texture = gl.createTexture();
     if (!texture) throw new Error('Unable to allocate an image texture.');
-    gl.activeTexture(gl.TEXTURE0 + slot);
+    // A logical source index can exceed the eight hardware sampler units.
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
@@ -222,12 +224,19 @@ export class Renderer {
     this.invalidate();
   }
   clear() {
-    for (let i = 0; i < 8; i++) this.remove(i);
+    this.sceneSize = null;
+    for (let i = 0; i < this.frames.length; i++) this.remove(i);
+    this.frames.length = this.textures.length = this.fallback.length = 8;
+  }
+  setSceneSize(width: number, height: number) {
+    this.sceneSize = { width, height };
+    this.updateBase();
+    this.invalidate();
   }
   private updateBase() {
-    this.base = {
-      width: Math.max(1, ...this.frames.map((f) => f?.width ?? 0)),
-      height: Math.max(1, ...this.frames.map((f) => f?.height ?? 0)),
+    this.base = this.sceneSize ?? {
+      width: this.frames.reduce((max, f) => Math.max(max, f?.width ?? 0), 1),
+      height: this.frames.reduce((max, f) => Math.max(max, f?.height ?? 0), 1),
     };
   }
   fit() {
@@ -285,28 +294,31 @@ export class Renderer {
     const gl = this.gl;
     if (gl.isContextLost() || this.disposed) return;
     const v = this.view;
+    const slots = [0, 1, 2, 3, v.slotA, v.slotB, -1, -1];
+    const visible = slots.map((slot) => this.frames[slot] ?? null);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.useProgram(this.program);
     gl.bindVertexArray(this.vao);
     for (let i = 0; i < 8; i++) {
       gl.activeTexture(gl.TEXTURE0 + i);
-      gl.bindTexture(gl.TEXTURE_2D, this.textures[i] ?? this.blank);
+      const texture = this.textures[slots[i]];
+      gl.bindTexture(gl.TEXTURE_2D, texture ?? this.blank);
       gl.uniform1i(this.location(`u_tex${i}`), i);
       const linear = v.filter === 'linear' || (v.filter === 'auto' && v.zoom < 1);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, linear ? gl.LINEAR : gl.NEAREST);
       gl.texParameteri(
         gl.TEXTURE_2D,
         gl.TEXTURE_MIN_FILTER,
-        linear && this.textures[i] ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST,
+        linear && texture ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST,
       );
     }
     gl.uniform1iv(
       this.location('u_present[0]'),
-      this.frames.map((f) => (f ? 1 : 0)),
+      visible.map((f) => (f ? 1 : 0)),
     );
     gl.uniform2fv(
       this.location('u_size[0]'),
-      this.frames.flatMap((f) => [f?.width ?? 1, f?.height ?? 1]),
+      visible.flatMap((f) => [f?.width ?? 1, f?.height ?? 1]),
     );
     for (const [name, p] of Object.entries({
       u_canvas: { x: this.canvas.width, y: this.canvas.height },
@@ -324,8 +336,8 @@ export class Renderer {
     for (const [name, value] of Object.entries({
       u_mode: v.mode,
       u_sub: v.subMode,
-      u_a: v.slotA,
-      u_b: v.slotB,
+      u_a: 4,
+      u_b: 5,
       u_loupe: Number(v.loupe),
       u_grid: Number(v.grid),
     }))

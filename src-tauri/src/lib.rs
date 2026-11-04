@@ -25,6 +25,7 @@ struct Backend {
     watcher: Mutex<Option<notify::RecommendedWatcher>>,
     decode_slots: Arc<tokio::sync::Semaphore>,
     metric_slot: Arc<tokio::sync::Semaphore>,
+    metric_revision: Arc<AtomicU64>,
 }
 impl Default for Backend {
     fn default() -> Self {
@@ -35,6 +36,7 @@ impl Default for Backend {
             watcher: Mutex::new(None),
             decode_slots: Arc::new(tokio::sync::Semaphore::new(4)),
             metric_slot: Arc::new(tokio::sync::Semaphore::new(1)),
+            metric_revision: Arc::new(AtomicU64::new(0)),
         }
     }
 }
@@ -64,25 +66,31 @@ struct Activated {
 }
 
 #[tauri::command]
-fn activate_scene(
+async fn activate_scene(
     index: usize,
     app: tauri::AppHandle,
     state: State<'_, Backend>,
 ) -> Result<Activated, String> {
-    let matrix = state.matrix.lock().map_err(|e| e.to_string())?;
-    let scene = matrix
+    let paths = state
+        .matrix
+        .lock()
+        .map_err(|e| e.to_string())?
         .as_ref()
         .and_then(|m| m.scenes.get(index))
-        .ok_or("Scene is unavailable.")?;
-    let paths = scene.frames.clone();
+        .ok_or("Scene is unavailable.")?
+        .frames
+        .clone();
     let epoch = state.epoch.fetch_add(1, Ordering::SeqCst) + 1;
     *state.active.lock().map_err(|e| e.to_string())? = paths.clone();
-    let result = watcher::watch(
-        paths.into_iter().flatten().collect(),
-        epoch,
-        state.epoch.clone(),
-        app,
-    );
+    let current = state.epoch.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        watcher::watch(paths.into_iter().flatten().collect(), epoch, current, app)
+    })
+    .await
+    .map_err(|e| e.to_string())?;
+    if state.epoch.load(Ordering::SeqCst) != epoch {
+        return Err("Scene changed.".into());
+    }
     let warning = result.as_ref().err().cloned();
     *state.watcher.lock().map_err(|e| e.to_string())? = result.ok();
     Ok(Activated { epoch, warning })
@@ -181,10 +189,13 @@ async fn load_frame_shared(
 async fn compute_metrics(
     epoch: u64,
     revision: u64,
+    slots: Option<Vec<usize>>,
     app: tauri::AppHandle,
     state: State<'_, Backend>,
 ) -> Result<(), String> {
     let paths = state.active.lock().map_err(|e| e.to_string())?.clone();
+    state.metric_revision.store(revision, Ordering::SeqCst);
+    let latest = state.metric_revision.clone();
     let permit = state
         .metric_slot
         .clone()
@@ -194,10 +205,39 @@ async fn compute_metrics(
     let current = state.epoch.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let _permit = permit;
-        if current.load(Ordering::SeqCst) != epoch {
+        if current.load(Ordering::SeqCst) != epoch || latest.load(Ordering::SeqCst) != revision {
             return Ok(());
         }
-        metrics::compute(&paths, epoch, revision, &current, &app)
+        metrics::compute(
+            &paths,
+            slots.as_deref(),
+            epoch,
+            revision,
+            &current,
+            &latest,
+            &app,
+        )
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn scene_dimensions(
+    epoch: u64,
+    state: State<'_, Backend>,
+) -> Result<Vec<Option<[u32; 2]>>, String> {
+    let paths = state.active.lock().map_err(|e| e.to_string())?.clone();
+    let current = state.epoch.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut sizes = Vec::with_capacity(paths.len());
+        for path in paths {
+            if current.load(Ordering::SeqCst) != epoch {
+                return Err("Scene changed.".into());
+            }
+            sizes.push(path.and_then(|p| decoder::dimensions(Path::new(&p)).ok()));
+        }
+        Ok(sizes)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -243,6 +283,7 @@ pub fn run() {
             transport::shared_frames_available,
             transport::release_shared_frame,
             compute_metrics,
+            scene_dimensions,
             export_html,
             diagnostics::benchmark_prepare,
             diagnostics::benchmark_transfer,
@@ -258,6 +299,7 @@ pub fn run() {
         transport::shared_frames_available,
         transport::release_shared_frame,
         compute_metrics,
+        scene_dimensions,
         export_html
     ]);
     builder

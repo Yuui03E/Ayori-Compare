@@ -77,8 +77,8 @@ pub fn build(
         .map(|m| m.sources.iter().map(|s| s.origin.clone()).collect())
         .unwrap_or_default();
     origins.extend(paths);
-    if !(2..=8).contains(&origins.len()) {
-        return Err("Choose between two and eight sources. Alt-drop adds sources up to the eight-source limit.".into());
+    if origins.len() < 2 {
+        return Err("Choose at least two images or source folders to compare.".into());
     }
     let mut canonical = Vec::new();
     let mut unique = HashSet::new();
@@ -347,5 +347,43 @@ mod tests {
     fn natural_sort_does_not_overflow() {
         assert!(natural_cmp("f2.png", "f10.png").is_lt());
         assert!(natural_cmp("f99999999999999999999999", "f100000000000000000000000").is_lt());
+    }
+    #[test]
+    fn hundred_files_and_append_keep_every_naturally_sorted_source() {
+        let temp = tempfile::tempdir().unwrap();
+        let paths: Vec<String> = (1..=100)
+            .rev()
+            .map(|i| {
+                let path = temp.path().join(format!("image{i}.png"));
+                fs::write(&path, b"fixture").unwrap();
+                path.to_string_lossy().into_owned()
+            })
+            .collect();
+        let matrix = build(paths[..90].to_vec(), None).unwrap();
+        let matrix = build(paths[90..].to_vec(), Some(matrix)).unwrap();
+        assert_eq!(matrix.sources.len(), 100);
+        assert_eq!(matrix.scenes[0].frames.iter().flatten().count(), 100);
+        let sorted = build(paths, None).unwrap();
+        assert_eq!(sorted.sources[0].label, "image1.png");
+        assert_eq!(sorted.sources[99].label, "image100.png");
+    }
+    #[test]
+    fn many_release_folders_retain_sparse_scene_cells() {
+        let names: Vec<&[&str]> = (0..100)
+            .map(|i| {
+                if i == 99 {
+                    &["shared.png"][..]
+                } else {
+                    &["shared.png", "other.png"][..]
+                }
+            })
+            .collect();
+        let (_temp, paths) = folders(&names);
+        let matrix = build(paths, None).unwrap();
+        assert_eq!(matrix.sources.len(), 100);
+        assert_eq!(matrix.scenes.len(), 2);
+        let other = matrix.scenes.iter().find(|s| s.label == "other").unwrap();
+        assert_eq!(other.frames.len(), 100);
+        assert!(other.frames[99].is_none());
     }
 }

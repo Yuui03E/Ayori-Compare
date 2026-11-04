@@ -97,6 +97,27 @@ pub fn decode(path: &Path) -> Result<Frame, String> {
     )
 }
 
+/// Inspect dimensions without allocating decoded pixels, including AVIF headers.
+pub fn dimensions(path: &Path) -> Result<[u32; 2], String> {
+    if fs::metadata(path).map_err(|e| e.to_string())?.len() > MAX_FILE_BYTES {
+        return Err("Image file exceeds the 512 MiB input limit.".into());
+    }
+    let (w, h) = if path
+        .extension()
+        .and_then(|s| s.to_str())
+        .is_some_and(|s| s.eq_ignore_ascii_case("avif"))
+    {
+        let bytes = fs::read(path).map_err(|e| e.to_string())?;
+        let parsed = avif_parse::read_avif(&mut Cursor::new(bytes)).map_err(|e| e.to_string())?;
+        let info = parsed.primary_item_metadata().map_err(|e| e.to_string())?;
+        (info.max_frame_width.get(), info.max_frame_height.get())
+    } else {
+        image::image_dimensions(path).map_err(|e| e.to_string())?
+    };
+    validate_dimensions(w, h)?;
+    Ok([w, h])
+}
+
 // rav1d 1.1 has an upstream abort path for malformed payloads. Keep that failure
 // in a hidden worker process, using the same executable to preserve portability.
 fn decode_avif_isolated(path: &Path) -> Result<Frame, String> {

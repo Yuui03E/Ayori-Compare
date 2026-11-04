@@ -22,9 +22,11 @@ pub struct Metric {
 
 pub fn compute(
     paths: &[Option<String>],
+    slots: Option<&[usize]>,
     epoch: u64,
     revision: u64,
     current: &AtomicU64,
+    latest: &AtomicU64,
     app: &tauri::AppHandle,
 ) -> Result<(), String> {
     let Some(Some(reference_path)) = paths.first() else {
@@ -36,8 +38,11 @@ pub fn compute(
     drop(reference);
     let mut references = HashMap::new();
     for (slot, path) in paths.iter().enumerate().skip(1) {
-        if current.load(Ordering::SeqCst) != epoch {
+        if current.load(Ordering::SeqCst) != epoch || latest.load(Ordering::SeqCst) != revision {
             return Ok(());
+        }
+        if slots.is_some_and(|selected| !selected.contains(&slot)) {
+            continue;
         }
         let Some(path) = path else {
             continue;
@@ -87,7 +92,7 @@ pub fn compute(
             Ok(_) => metric.error = Some("Metric returned a non-finite value.".into()),
             Err(error) => metric.error = Some(error),
         }
-        if current.load(Ordering::SeqCst) != epoch {
+        if current.load(Ordering::SeqCst) != epoch || latest.load(Ordering::SeqCst) != revision {
             return Ok(());
         }
         let _ = app.emit("metric-ready", metric);

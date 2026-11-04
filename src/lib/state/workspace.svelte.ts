@@ -7,6 +7,7 @@ import { Renderer } from '../webgl/renderer';
 import { parseFrame, readPixel } from '../webgl/packet';
 import { demoFrame, demoMatrix } from '../demo';
 import { loadFramePacket } from '../frame-transport';
+import { residentSlots } from '../residency';
 
 export class AyoriWorkspace {
   matrix = $state.raw<ComparisonMatrix | null>(null);
@@ -32,6 +33,9 @@ export class AyoriWorkspace {
   hudLocked = $state(false);
   drawer = $state(false);
   help = $state(false);
+  sourceBrowser = $state(false);
+  pendingSlots = $state.raw<number[]>([]);
+  dimensions = $state.raw<([number, number] | null)[]>([]);
   draggingFiles = $state(false);
   message = $state('');
   warnings = $state.raw<string[]>([]);
@@ -49,6 +53,11 @@ export class AyoriWorkspace {
   private scoreTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
   private loads = new Map<number, AbortController>();
+  private wanted = new Set<number>();
+  private jobs = new Map<number, Promise<void>>();
+  private activating = false;
+  private dimensionRevision = 0;
+  private dimensionTimer: ReturnType<typeof setTimeout> | undefined;
 
   attach(canvas: HTMLCanvasElement) {
     this.disposed = false;
@@ -120,12 +129,20 @@ export class AyoriWorkspace {
     const token = ++this.generation;
     this.loads.forEach((load) => load.abort());
     this.loads.clear();
+    this.jobs.clear();
+    this.wanted.clear();
+    this.pendingSlots = [];
+    this.dimensions = [];
+    clearTimeout(this.dimensionTimer);
+    this.dimensionRevision++;
+    this.activating = true;
     const start = performance.now();
     this.sceneIndex = index;
     this.loading = true;
     this.errors = {};
     this.scores = {};
-    this.frames = Array(8).fill(null);
+    this.frames = Array(Math.max(8, this.matrix.sources.length)).fill(null);
+    this.revisions = Array(this.frames.length).fill(0);
     this.fallback = false;
     this.pixels = [null, null];
     this.metricStatus = '';
@@ -151,11 +168,10 @@ export class AyoriWorkspace {
         if (token !== this.generation) return;
         this.epoch = active.epoch;
         if (active.warning) this.notify(`Live reload unavailable: ${active.warning}`);
-        await Promise.all(
-          scene.frames.map(async (path, slot) => {
-            if (path) await this.loadSlot(slot, path, token, active.epoch);
-          }),
-        );
+        this.activating = false;
+        const sizing =
+          this.matrix.sources.length > 8 ? this.inspectDimensions(token) : Promise.resolve();
+        await Promise.all([this.ensureResidents(), sizing]);
       }
       if (token !== this.generation) return;
       const valid = this.frames.map((f, i) => (f ? i : -1)).filter((i) => i >= 0);
@@ -169,11 +185,68 @@ export class AyoriWorkspace {
     } catch (error) {
       if (token === this.generation) this.notify(String(error));
     } finally {
-      if (token === this.generation) this.loading = false;
+      if (token === this.generation) {
+        this.loading = false;
+        this.activating = false;
+      }
+    }
+  }
+  private async inspectDimensions(token: number) {
+    const revision = ++this.dimensionRevision;
+    const sizes = await invoke<([number, number] | null)[]>('scene_dimensions', {
+      epoch: this.epoch,
+    });
+    if (token !== this.generation || revision !== this.dimensionRevision || this.disposed) return;
+    this.dimensions = sizes;
+    this.applyDimensions();
+  }
+  private applyDimensions() {
+    if (!this.dimensions.length) return;
+    this.renderer?.setSceneSize(
+      this.dimensions.reduce((max, s) => Math.max(max, s?.[0] ?? 0), 1),
+      this.dimensions.reduce((max, s) => Math.max(max, s?.[1] ?? 0), 1),
+    );
+  }
+  /** Reconcile a bounded working set without queuing a decode for every source. */
+  private async ensureResidents() {
+    if (!this.matrix || !this.renderer || this.activating || this.demo || this.disposed) return;
+    const token = this.generation;
+    const paths = this.matrix.scenes[this.sceneIndex].frames;
+    this.wanted = new Set(
+      residentSlots(
+        this.matrix.sources.length,
+        this.slotA,
+        this.slotB,
+        this.previousSlot,
+        this.mode === 1 && this.subMode === 2,
+      ).filter((slot) => paths[slot]),
+    );
+    this.renderer.frames.forEach((frame, slot) => {
+      if (frame && !this.wanted.has(slot)) this.renderer!.remove(slot);
+    });
+    this.updateFrames();
+    while (token === this.generation && !this.disposed) {
+      for (const slot of this.wanted) {
+        if (this.jobs.size >= 4) break;
+        if (this.frames[slot] || this.errors[slot] || this.jobs.has(slot)) continue;
+        const job = this.loadSlot(slot, paths[slot]!, token, this.epoch).finally(() => {
+          if (this.jobs.get(slot) === job) this.jobs.delete(slot);
+        });
+        this.jobs.set(slot, job);
+      }
+      this.pendingSlots = [...this.wanted].filter(
+        (slot) => !this.frames[slot] && !this.errors[slot],
+      );
+      if (!this.jobs.size) break;
+      await Promise.race(this.jobs.values());
+    }
+    if (token === this.generation && !this.disposed) {
+      this.updatePixel();
+      this.queueMetrics();
     }
   }
   private async loadSlot(slot: number, path: string, token: number, epoch: number, retry = 0) {
-    const revision = ++this.revisions[slot];
+    const revision = (this.revisions[slot] = (this.revisions[slot] ?? 0) + 1);
     this.loads.get(slot)?.abort();
     const controller = new AbortController();
     this.loads.set(slot, controller);
@@ -181,10 +254,22 @@ export class AyoriWorkspace {
       const lease = await loadFramePacket(path, epoch, controller.signal);
       let adopted = false;
       try {
-        if (token !== this.generation || revision !== this.revisions[slot] || this.disposed) return;
+        if (
+          token !== this.generation ||
+          revision !== this.revisions[slot] ||
+          this.disposed ||
+          !this.wanted.has(slot)
+        )
+          return;
         const frame = parseFrame(lease.buffer);
         frame.release = lease.release;
         this.renderer!.upload(slot, frame);
+        if (this.dimensions.length) {
+          this.dimensions = this.dimensions.map((size, i) =>
+            i === slot ? [frame.width, frame.height] : size,
+          );
+          this.applyDimensions();
+        }
         adopted = true;
       } finally {
         if (!adopted) lease.release();
@@ -194,7 +279,13 @@ export class AyoriWorkspace {
       this.errors = next;
       this.updateFrames();
     } catch (error) {
-      if (token !== this.generation || revision !== this.revisions[slot] || this.disposed) return;
+      if (
+        token !== this.generation ||
+        revision !== this.revisions[slot] ||
+        this.disposed ||
+        !this.wanted.has(slot)
+      )
+        return;
       if (retry < 3) {
         await new Promise((resolve) => setTimeout(resolve, 150 * (retry + 1)));
         if (token === this.generation && revision === this.revisions[slot])
@@ -210,7 +301,10 @@ export class AyoriWorkspace {
     }
   }
   private updateFrames() {
-    this.frames = [...this.renderer!.frames];
+    this.frames = Array.from(
+      { length: Math.max(8, this.matrix?.sources.length ?? 0) },
+      (_, i) => this.renderer!.frames[i] ?? null,
+    );
     this.fallback = this.renderer!.fallback.some(Boolean);
   }
   onFileChanged(event: { epoch: number; path: string }) {
@@ -219,6 +313,19 @@ export class AyoriWorkspace {
     if (slot < 0) return;
     this.metricRevision++;
     this.scores = {};
+    const errors = { ...this.errors };
+    delete errors[slot];
+    this.errors = errors;
+    if (this.matrix.sources.length > 8) {
+      this.dimensionRevision++;
+      clearTimeout(this.dimensionTimer);
+      this.dimensionTimer = setTimeout(
+        () =>
+          void this.inspectDimensions(this.generation).catch((error) => this.notify(String(error))),
+        250,
+      );
+    }
+    if (!this.wanted.has(slot)) return;
     clearTimeout(this.refreshTimers.get(slot));
     const token = this.generation;
     this.refreshTimers.set(
@@ -231,13 +338,21 @@ export class AyoriWorkspace {
     );
   }
   private queueMetrics() {
-    if (this.demo || !this.frames[0]) return;
+    if (this.demo || !this.matrix?.scenes[this.sceneIndex].frames[0] || this.disposed) return;
     clearTimeout(this.scoreTimer);
     const epoch = this.epoch,
       revision = ++this.metricRevision;
     this.metricStatus = 'Measuring…';
     this.scoreTimer = setTimeout(() => {
-      void invoke('compute_metrics', { epoch, revision })
+      const slots =
+        this.matrix!.sources.length > 8
+          ? [...new Set([this.slotA, this.slotB])].filter((slot) => slot > 0 && !this.scores[slot])
+          : undefined;
+      if (slots?.length === 0) {
+        this.metricStatus = '';
+        return;
+      }
+      void invoke('compute_metrics', { epoch, revision, slots })
         .then(() => {
           if (revision === this.metricRevision) this.metricStatus = '';
         })
@@ -262,14 +377,19 @@ export class AyoriWorkspace {
     }
     this.renderer?.invalidate();
     this.updatePixel();
+    if ((this.matrix?.sources.length ?? 0) > 8) void this.ensureResidents();
   }
   swap() {
     const previous = this.previousSlot;
     this.select(previous);
   }
-  cycleSource(step: number) {
+  cycleSource(step: number, secondary = false) {
     if (this.matrix)
-      this.select((this.slotA + step + this.matrix.sources.length) % this.matrix.sources.length);
+      this.select(
+        ((secondary ? this.slotB : this.slotA) + step + this.matrix.sources.length) %
+          this.matrix.sources.length,
+        secondary,
+      );
   }
   scene(step: number) {
     if (this.matrix)
@@ -281,8 +401,10 @@ export class AyoriWorkspace {
     this.subMode = this.mode === mode ? (this.subMode + 1) % [1, 3, 1, 2, 4][mode] : 0;
     this.mode = mode;
     this.renderer?.setMode(mode, this.subMode);
+    if ((this.matrix?.sources.length ?? 0) > 8) void this.ensureResidents();
   }
   setGain(value: number) {
+    value = Math.max(1, Math.min(50, value));
     this.gain = value;
     if (this.renderer) {
       this.renderer.view.gain = value;
@@ -290,6 +412,7 @@ export class AyoriWorkspace {
     }
   }
   setBands(value: number) {
+    value = Math.max(8, Math.min(64, value));
     this.bands = value;
     if (this.renderer) {
       this.renderer.view.bandFrequency = value;
@@ -325,6 +448,16 @@ export class AyoriWorkspace {
   toggleHud() {
     this.hudLocked = !this.hudLocked;
     this.hudHidden = this.hudLocked;
+  }
+  exchangeSources() {
+    const a = this.slotA;
+    this.select(this.slotB);
+    this.select(a, true);
+  }
+  resetView() {
+    this.fit();
+    this.setGain(8);
+    this.setBands(32);
   }
   move(event: PointerEvent) {
     if (!this.renderer) return;
@@ -391,10 +524,14 @@ export class AyoriWorkspace {
     this.generation++;
     this.loads.forEach((load) => load.abort());
     this.loads.clear();
+    this.jobs.clear();
+    this.wanted.clear();
+    this.pendingSlots = [];
     this.metricRevision++;
     this.refreshTimers.forEach(clearTimeout);
     clearTimeout(this.scoreTimer);
     clearTimeout(this.toastTimer);
+    clearTimeout(this.dimensionTimer);
     this.renderer?.dispose();
     this.renderer = null;
     this.frames = Array(8).fill(null);
