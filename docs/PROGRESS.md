@@ -6,7 +6,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 - Updated: 2026-11-04 (Asia/Dhaka).
 - Branch: `codex/shortcuts-large-comparisons`.
-- The user requested editable/expanded shortcuts, descriptive hover help, support for 100-image collections, and richer UI while preserving the current typography and dark style. This supersedes the original eight-source product limit. Core implementation and development integration checks pass; final packaging of these additions is in progress. Linux validation remains deferred.
+- The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
 
@@ -20,7 +20,8 @@ This is the current handoff record. Read it before making changes and update it 
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
 | 4. Inspection tools | Implemented and smoke-verified | Modes, flicker, readout, eight mixed-depth 4K textures, and emulated 100/125/150/200% scaling pass. Physical mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
-| 6. Sharing and release | Final Windows artifact verified; external qualification deferred | Clipboard matches every captured pixel; offline HTML passes. Final executable is 8,336,384 bytes, with packaged shared-buffer workflows verified. Linux, clean-machine, physical mixed-DPI and 240 Hz testing need other environments. |
+| 6. Sharing and release | Final Windows artifact verified; external qualification deferred | Clipboard matches every captured pixel; offline HTML passes. Current executable is 8,486,912 bytes. Linux, clean-machine, physical mixed-DPI and 240 Hz testing need other environments. |
+| 7. Large collections and configurable UI | Complete; final Windows package verified | 100-image and 100-folder comparisons, bounded residency, searchable A/B selection, 53 editable actions, saved preferences, live hover help and richer UI pass. 22 frontend + 21 Rust tests. |
 
 ## Completed steps
 
@@ -32,13 +33,11 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Resume here
 
-The latest work adds large collections and configurable shortcuts. Read the new entries at the end before using the earlier Windows delivery checkpoint: its executable predates these additions. Final packaging and verification of the additions are the next step.
+The latest requested features are complete. Images are alternatives of one scene; folders represent releases/encoding groups with matching frame rows. Browse all searches arbitrary A/B sources. Settings contains 53 editable actions and interface preferences, saved locally. Large comparisons prepare selected/nearby images on demand while keeping at most eight resident; cold selection is not an instant-switch guarantee. Exact source samples, sparse cells and stale-work safeguards remain intact.
 
-Windows now uses read-only WebView2 shared frame buffers with an unchanged raw AYRI fallback on other/older runtimes. Transfer median/p95 are below 5 ms; a 5.30 ms maximum remains an observed tail stall. Full source-byte equality, cancellation, release/detachment, bounded idle retention, reload cleanup, and existing native workflows pass. See `docs/RELEASE_VALIDATION.md` for evidence and reproducible commands.
+Current normal executable: `src-tauri/target/release/ayori-compare.exe` — **8,486,912 bytes**, SHA-256 `a1388e87be74aafed3780def0160a290984d5f2e38cafe08aec22339dd00d41a`. The corrected final package passes 100-image UI workflows, saved shortcuts, tooltip updates, minimum-window layout and the user's WEBP matrix; every clipboard pixel matches. The custom close control exits, and no Ayori process remains. An existing Vite server on port 1420 may still be running; inspect before starting another.
 
-No remaining implementation task is identified for this Windows session. The final normal executable has been rebuilt and verified with the user's WEBP matrix and high-depth/subsampled AVIF inputs. Broader AVIF and representative PNG corpus checks are complete. Linux/AppImage is explicitly deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks still require suitable environments. The low-severity development-only upstream advisory remains documented, with no published fix.
-
-Current executable: `src-tauri/target/release/ayori-compare.exe` — **8,336,384 bytes**, SHA-256 `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Development command: `npm run desktop`. The test app was closed through its custom close control; no Ayori process remained. An existing Vite server may still be running; inspect before starting another.
+No further implementation task from the current request remains. Linux/AppImage remains deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks need suitable environments. Earlier timing/memory measurements in `RELEASE_VALIDATION.md` describe the preceding baseline; they were not rerun as performance claims for the new UI. The upstream development-only advisory remains documented.
 
 ### 2026-11-04 — Foundation verified
 
@@ -196,3 +195,10 @@ Current executable: `src-tauri/target/release/ayori-compare.exe` — **8,336,384
 - A final review found that a failed dimension request could show an obsolete error after scene navigation. Dimension errors now use the same generation/revision/disposal checks as successful results. A new asynchronous regression test covers this case.
 - Also made scene activation's active-path/epoch update atomic under its existing lock and checked watcher freshness while holding the installation lock, so a late watcher cannot replace a newer scene's watcher. Old-epoch metric requests return before changing the current revision.
 - All **22 frontend tests**, **21 Rust tests** and strict Clippy pass. The corrected normal executable is rebuilding; final delivery evidence will follow.
+
+### 2026-11-04 — Large-collection Windows release delivered
+
+- Rebuilt the corrected normal executable with `npm run desktop:build`: **8,486,912 bytes (8.49 MB decimal)**, SHA-256 `a1388e87be74aafed3780def0160a290984d5f2e38cafe08aec22339dd00d41a`. The build has zero Svelte errors/warnings and remains below the 10 MB target.
+- `scripts/verify-release-ui.mjs` passes against the bundled production frontend: imports 100 images, selects sources 100 and 50, exercises split comparison, edits and reloads a saved shortcut, and verifies updated tooltip text. The 960×600 emulated viewport contains the settings dialog at (40,32)–(920,568) with no horizontal overflow; final native workspace and dialog layouts were visually inspected.
+- `scripts/verify-release.mjs` passes again with the user's two-source/four-scene WEBP matrix, production-only hook checks, shared-buffer receipt/release, copying and maximize/restore. The clipboard reader matches all **1,296,000 RGBA pixels**. The custom close button exits the final process.
+- Final source checks remain **22 frontend + 21 Rust tests**, strict all-feature/all-target Clippy, Rust formatting and zero production npm audit findings. Both lockfiles remain tracked; generated test images, exports and executable are ignored. No performance rebenchmark is claimed for this UI release. External hardware/Linux qualification remains as previously documented.

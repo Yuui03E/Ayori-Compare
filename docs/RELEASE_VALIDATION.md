@@ -2,6 +2,18 @@
 
 These measurements describe this machine and these workloads. Unmet targets remain release qualification work.
 
+## Current Windows delivery — large collections and configurable controls
+
+- Normal executable: **8,486,912 bytes** (8.49 MB decimal), SHA-256 `a1388e87be74aafed3780def0160a290984d5f2e38cafe08aec22339dd00d41a`. Built with `npm run desktop:build`; diagnostic commands and development workspace access are absent.
+- **22 frontend tests and 21 Rust tests pass**, with zero Svelte diagnostics, strict all-feature/all-target Clippy, Rust formatting and a clean production dependency audit.
+- Native integration covers 100 individual images and 100 release folders with two matched scenes and a missing selected source. An arbitrary pair (sources 100 and 50) retains exact source/GPU pixels, a stable base size and at most eight resident frames. Four-quadrant switching, stale selection/metadata rejection and shared mapping release pass.
+- The final packaged UI independently passes a 100-image import, arbitrary A/B selection, split view, edited shortcuts saved across reload, and current-key tooltip text. Native settings/workspace layouts were visually reviewed. At an emulated 960×600 viewport, the settings dialog stays within the window without horizontal overflow.
+- Final packaged user WEBP matrix, source/scene switching, clipboard, maximize/restore and custom close pass. All 1,296,000 captured clipboard pixels match. Development native regressions retain exact 16-bit fallback readout, hot reload, scaling and eight mixed-depth 4K coverage.
+- Updated self-contained HTML supports searchable A/B selection across 100 images, keeps a bounded decoded working set, and loads without network requests or frontend errors. Desktop shortcut preferences remain local and are not embedded in exports.
+- Reproduce additions with `scripts/verify-collections.mjs` against a diagnostics development app and `scripts/verify-release-ui.mjs` against the normal packaged app, both on local WebView2 debugging port 9223. The first script creates original, ignored test images; run it before the packaged test. Existing release and clipboard checks remain applicable.
+
+The timing and memory tables below describe the earlier eight-source baseline. They were not remeasured for this UI release. Newly selected, nonresident images require loading; large collections do not extend the instant-switch claim to cold images. The resident set is capped at eight, and individual image limits still apply.
+
 ## Environment
 
 - Windows x64, AMD Ryzen 9 9950X (16 cores / 32 logical processors), 32 GiB installed RAM.
@@ -33,7 +45,7 @@ The legacy raw-response probe receives a real `ArrayBuffer` over `http://ipc.loc
 
 ## Correctness and integration evidence
 
-- Final normal Windows executable: **8,336,384 bytes** (8.34 MB decimal), SHA-256 `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Built by `npm run desktop:build`, with measurement commands and development workspace hook verified absent.
+- Previous baseline Windows executable: **8,336,384 bytes** (8.34 MB decimal), SHA-256 `802cc8a0bb0cad98892dc358d8d6b970ba70c357d829e706a18d892a6fbe09c6`. Built by `npm run desktop:build`, with measurement commands and development workspace hook verified absent. The current delivery is recorded above.
 - Final packaged launch, real WEBP folder matrix (two sources/four scenes), identity and subsampled 10/12-bit AVIF worker imports, clipboard, maximize/restore, minimize and custom close all verified. The actual final comparison, split view and high-depth ramp were visually inspected. Production scene switching receives/releases shared mappings (6 received, 4 released, 2 resident); high-depth AVIF import receives four mappings without frontend errors.
 - OS clipboard image matched **all 1,296,000 RGBA pixels** of the captured 1440×900 canvas, using a native clipboard reader and byte-for-byte comparison.
 
