@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 100 100" fill="none">
+  <title>Ayori</title>
+  <rect x="1" y="1" width="98" height="98" rx="24" fill="#000000" stroke="#2C4036" stroke-width="1"/>
+  <g transform="translate(8 8) scale(.84)">
+    <path d="M10 83 40 17H58L28 83Z" fill="#AFE6D3"/>
+    <path d="M62 25 89 83H68L52 48Z" fill="#F0ECE2"/>
+    <path d="M39 63H56L64 80H31Z" fill="#60AE97"/>
+  </g>
+</svg>

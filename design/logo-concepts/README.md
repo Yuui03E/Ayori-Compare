@@ -1,6 +1,6 @@
 # Ayori logo concepts
 
-Original SVG studies prepared for the user's selection. These are proposals, not the installed app identity.
+Original SVG studies prepared for the user's selection. The user selected **A / Facet** on 2026-11-04. The original concept sheet remains unchanged as a design record; the approved identity is documented in `../BRANDING.md`.
 
 - **A — Facet:** asymmetric A monogram; pale mint, warm white and a darker green facet. Recommended for its recognizable initial and compact silhouette.
 - **B — Twinlight:** opposing lens halves around a shared diamond; soft violet, mint and white.

@@ -263,3 +263,10 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Created three original, editable vector logo directions in `design/logo-concepts`: A / Facet (asymmetric A), B / Twinlight (split lens), and C / Parallax (offset comparison frames). Prepared a combined PNG sheet, individual preview cards and a reproducible HTML presentation.
 - Visually reviewed the rendered sheet, including 16/24/32px sizes, a 48px app icon treatment, single-color silhouettes and compact title-bar mockups. These are design previews; app components, native icons and the delivered executable are unchanged.
 - Next: the user chooses a direction, as explicitly requested. Then refine/apply that mark, regenerate native icons and verify the final packaged app. No logo integration milestone is complete yet.
+
+### 2026-11-04 — Selected Facet logo integrated; packaging verification pending
+
+- The user selected A / Facet. Added the approved SVG as the shared master for the title bar, existing Home preview badge and favicon. Offline comparisons inline the same mark and favicon without network dependencies. Existing typography and compact bar behavior are preserved, including hiding the decorative mark below 24px.
+- Added `scripts/generate-icons.mjs` to derive a black rounded app tile from the master and regenerate the existing native icon set through Tauri. ICO/PNG/ICNS and platform variants are tracked assets. Visually inspected the generated 128px icon; approved shapes and colors are retained.
+- All **37 frontend tests pass**; production frontend and offline builds pass with zero Svelte diagnostics. Native packaging is underway. The source changes are implemented, but final executable resources, actual packaged UI and offline branding still require verification.
+- Next: verify packaged title bar/Home, all compact heights, embedded Windows icon resources and offline export; record final executable and release evidence.

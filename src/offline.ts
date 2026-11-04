@@ -3,6 +3,19 @@ import { parseFrame, readPixel } from './lib/webgl/packet';
 import type { Mode, Point } from './lib/types';
 import { residentSlots } from './lib/residency';
 import { RightButtonGesture, normalizeQuickZoom } from './lib/right-button-gesture';
+import logo from './lib/assets/ayori.svg?inline';
+
+const brand = document.querySelector('header h1')!;
+const brandIcon = document.createElement('img');
+brandIcon.src = logo;
+brandIcon.alt = '';
+brandIcon.width = brandIcon.height = 16;
+brand.prepend(brandIcon);
+const favicon = document.createElement('link');
+favicon.rel = 'icon';
+favicon.type = 'image/svg+xml';
+favicon.href = logo;
+document.head.append(favicon);
 
 type Manifest = {
   sources: { label: string }[];

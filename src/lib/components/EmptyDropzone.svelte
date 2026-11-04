@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { FolderOpen, Images, ArrowUpRight, ScanLine, Keyboard, ArrowLeft } from '@lucide/svelte';
+  import { FolderOpen, Images, ArrowUpRight, Keyboard, ArrowLeft } from '@lucide/svelte';
+  import logo from '../assets/ayori.svg';
   import { workspace as w } from '../state/workspace.svelte';
   import { preferences as p } from '../state/preferences.svelte';
 </script>
@@ -38,7 +39,7 @@
         <div class="mountain"></div>
         <span>02</span>
       </div>
-      <div class="scan"><ScanLine size={22} /></div>
+      <div class="scan"><img src={logo} alt="" width="30" height="30" draggable="false" /></div>
     </div>
     <h2>Drop your frames here</h2>
     <p>Compare a single frame or an entire collection.</p>
@@ -251,7 +252,7 @@
     left: calc(50% - 19px);
     top: 29px;
     border: 1px solid #3c504c;
-    background: #142421;
+    background: #000;
     color: #98dacd;
     display: grid;
     place-items: center;

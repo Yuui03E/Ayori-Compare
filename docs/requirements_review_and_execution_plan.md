@@ -189,3 +189,7 @@ The user requested a configurable 16–44px top bar, pure-black styling, the vis
 ## Subsequent user decision — reversible right-click zoom
 
 The user requested an explanation of mixed-resolution comparison and a double-right-click zoom gesture with a user-chosen target and a second double click restoring the previous view. Default to 200%, preserve click anchoring and prior pan, retain held/dragged loupe, expose a saved target and enable switch, and include the gesture in offline exports. Existing normalized alignment and preview/metric resampling algorithms remain unchanged; document their actual behavior.
+
+## Subsequent user decision — Facet identity
+
+The user chose logo concept A / Facet. Apply its approved mint/white/green asymmetric A to the title bar, Home, favicons and native app icons, with the same identity in offline exports. Preserve existing typography, pure-black styling and compact layout. The original concept studies remain a design record.

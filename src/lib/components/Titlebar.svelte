@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Minus, Square, X, ScanLine, CircleHelp, House } from '@lucide/svelte';
+  import { Minus, Square, X, CircleHelp, House } from '@lucide/svelte';
+  import logo from '../assets/ayori.svg';
   import type { Snippet } from 'svelte';
   import { workspace as w } from '../state/workspace.svelte';
   import { preferences as p } from '../state/preferences.svelte';
@@ -24,7 +25,9 @@
   class:micro={p.barHeight < 24}
 >
   <div class="brand" data-tauri-drag-region>
-    <ScanLine size={15} /><span data-tauri-drag-region>Ayori</span>
+    <img src={logo} alt="" draggable="false" data-tauri-drag-region /><span data-tauri-drag-region
+      >Ayori</span
+    >
   </div>
   {#if w.comparing}<button
       class="home-button"
@@ -110,7 +113,8 @@
     flex-shrink: 0;
     border-radius: 3px;
   }
-  header :global(svg) {
+  header :global(svg),
+  .brand img {
     width: var(--bar-icon-size);
     height: var(--bar-icon-size);
     flex-shrink: 0;
@@ -121,7 +125,7 @@
   .micro .brand {
     gap: 4px;
   }
-  .micro .brand :global(svg) {
+  .micro .brand img {
     display: none;
   }
   button.settings {
