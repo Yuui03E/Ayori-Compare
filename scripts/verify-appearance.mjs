@@ -151,6 +151,7 @@ try {
   await page.keyboard.press('Alt+Home');
   await page.getByRole('button', { name: 'Resume comparison' }).waitFor();
   assert.equal(await page.locator('canvas').isVisible(), false);
+  await page.screenshot({ path: 'local-fixtures/ayori-home-960.png' });
   await page.keyboard.press('ArrowDown'); // Comparison keys are inactive on Home.
   await page.getByRole('button', { name: 'Resume comparison' }).click();
   assert.equal(
