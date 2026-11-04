@@ -57,7 +57,7 @@ void main() {
     fragColor=vec4(outside(lens)?background(screen):overBackground(sampleSlot(slot,lens,true),screen),1.); return;
   }
   if(u_mode==2 && abs(screen.x-u_canvas.x*.5)<1.) { fragColor=vec4(.3,.32,.35,1.); return; }
-  if(outside(uv)) { fragColor=vec4(vec3(.035,.037,.044),1.); return; }
+  if(outside(uv)) { fragColor=vec4(0.,0.,0.,1.); return; }
   int slot=u_a;
   if(u_mode==1) {
     if(u_sub==0) { if(abs(screen.x-u_mouse.x)<.75) { fragColor=vec4(.8,.9,.9,1.);return; } slot=screen.x<u_mouse.x?u_a:u_b; }

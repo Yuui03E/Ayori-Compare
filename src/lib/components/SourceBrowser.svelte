@@ -197,7 +197,7 @@
     display: flex;
     justify-content: space-between;
     padding: 26px 28px 20px;
-    background: radial-gradient(ellipse at top left, #70cab91a, transparent 70%);
+    background: #000;
   }
   .eyebrow {
     color: #83bdb2;

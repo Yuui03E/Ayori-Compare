@@ -94,7 +94,7 @@
     padding: 8px 10px;
     border: 1px solid #badfd72b;
     border-radius: 6px;
-    background: #15201ffc;
+    background: #080808;
     color: #d3e4de;
     font:
       11px/1.45 'Segoe UI',

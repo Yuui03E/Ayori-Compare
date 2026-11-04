@@ -85,7 +85,7 @@
   }
 </script>
 
-<div class="toolbar" data-hud aria-label="Comparison controls">
+<div class="toolbar" class:micro={p.barHeight < 24} data-hud aria-label="Comparison controls">
   <div class="pair">
     {#each [w.slotA, w.slotB] as slot, side}
       {#if side === 1}<button
@@ -99,13 +99,16 @@
         class:secondary={side === 1}
         class:missing={!w.matrix?.scenes[w.sceneIndex]?.frames[slot]}
         aria-label={`Choose source ${side ? 'B' : 'A'}`}
-        data-tip={sourceInfo(slot)}
+        data-tip={`${side === 1 && w.slotA === w.slotB ? 'A and B are the same source. Choose another source to compare.\n' : ''}${sourceInfo(slot)}`}
         onclick={() => (w.sourceBrowser = true)}
       >
         <span class="badge">{side ? 'B' : 'A'}</span><span class="source-name"
           >{w.matrix?.sources[slot]?.label}</span
         >
-        <small>{slot + 1}</small><ChevronDown size={10} />
+        <small>{slot + 1}</small>{#if side === 1 && w.slotA === w.slotB}<span
+            class="same-source"
+            aria-label="A and B are the same source">=</span
+          >{:else}<ChevronDown size={10} />{/if}
       </button>
     {/each}
   </div>
@@ -329,11 +332,12 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 28px;
+    height: var(--bar-control-height);
     border-radius: 5px;
     background: transparent;
     color: #91a6a2;
-    font-size: 11px;
+    font-size: var(--bar-font-size);
+    line-height: 1;
     white-space: nowrap;
   }
   button:hover {
@@ -350,6 +354,35 @@
     padding: 0 6px;
     flex-shrink: 0;
   }
+  .toolbar :global(svg) {
+    max-width: var(--bar-icon-size);
+    max-height: var(--bar-icon-size);
+  }
+  .toolbar button:focus-visible {
+    outline-offset: -2px;
+  }
+  .same-source {
+    font:
+      11px Consolas,
+      monospace;
+    color: #e7cd9b;
+  }
+  .micro .source-chip small,
+  .micro .scene-word,
+  .micro .count {
+    display: none;
+  }
+  .micro .badge {
+    padding: 0 3px;
+    font-size: 9px;
+    line-height: 11px;
+  }
+  .micro .source-chip {
+    border-radius: 2px;
+  }
+  .micro .scene small {
+    font-size: 9px;
+  }
   .pair {
     display: flex;
     align-items: center;
@@ -363,11 +396,11 @@
     min-width: 0;
     padding: 0 7px;
     border: 1px solid #82d6c126;
-    background: #82d6c108;
+    background: #000;
   }
   .source-chip.secondary {
     border-color: #d5b57526;
-    background: #d5b57507;
+    background: #000;
   }
   .source-chip.missing {
     border-style: dashed;
@@ -416,7 +449,7 @@
     flex-shrink: 0;
   }
   .separator {
-    height: 17px;
+    height: min(17px, calc(var(--bar-height) - 4px));
     width: 1px;
     background: #ffffff10;
     margin: 0 3px;

@@ -105,10 +105,18 @@ try {
         });
       return { height: bounds.height, overflow: header.scrollWidth > header.clientWidth, buttons };
     });
-    assert.equal(toolbar.height, 44);
+    assert.equal(
+      toolbar.height,
+      await page.evaluate(
+        () => JSON.parse(localStorage.getItem('ayori.interface.v1') ?? '{}').barHeight ?? 32,
+      ),
+    );
     assert.equal(toolbar.overflow, false);
     for (const b of toolbar.buttons)
-      assert(b.x >= 0 && b.right <= 960 && b.y >= 0 && b.bottom <= 44, JSON.stringify(b));
+      assert(
+        b.x >= 0 && b.right <= 960 && b.y >= 0 && b.bottom <= toolbar.height,
+        JSON.stringify(b),
+      );
     for (let i = 1; i < toolbar.buttons.length; i++)
       assert(toolbar.buttons[i].x >= toolbar.buttons[i - 1].right - 1, 'Toolbar controls overlap');
     await page.screenshot({ path: 'local-fixtures/compact-workspace-960.png' });
@@ -182,7 +190,7 @@ try {
       'Flicker previous source',
     );
     await page.getByRole('button', { name: 'Show more shortcuts', exact: true }).click();
-    assert.equal(await page.locator('.shortcut-row').count(), 53);
+    assert.equal(await page.locator('.shortcut-row').count(), 57);
     await page.getByRole('button', { name: 'Essentials only', exact: true }).click();
     await page.getByRole('textbox', { name: 'Search shortcuts' }).fill('export');
     await page.getByRole('button', { name: 'Edit Export HTML shortcut', exact: true }).waitFor();

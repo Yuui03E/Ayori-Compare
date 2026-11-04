@@ -1,10 +1,15 @@
 import { workspace as w } from './state/workspace.svelte';
 import type { Mode } from './types';
+import { controlWindow } from './window-controls';
 export function runCommand(id: string) {
   if (/^source\d$/.test(id)) return w.select(Number(id.slice(6)));
   if (id.startsWith('secondary')) return w.select(Number(id.slice(9)), true);
   if (id.startsWith('mode')) return w.setMode(Number(id.slice(4)) as Mode);
   const commands: Record<string, () => void> = {
+    home: () => w.showHome(),
+    minimize: () => void controlWindow('minimize').catch((e) => w.notify(String(e))),
+    maximize: () => void controlWindow('toggleMaximize').catch((e) => w.notify(String(e))),
+    quit: () => void controlWindow('close').catch((e) => w.notify(String(e))),
     openImages: () => void w.choose(),
     openFolders: () => void w.choose(true),
     append: () => void w.choose(w.matrix?.sources[0].kind === 'folder', true),

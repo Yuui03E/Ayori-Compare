@@ -24,6 +24,7 @@
     'sources',
     'settings',
   ];
+  const appActions = actions.filter((a) => a.group === 'Application');
   const essentialActions = essentialIds.map((id) => actions.find((a) => a.id === id)!);
   const filtered = $derived(
     query.trim()
@@ -117,6 +118,23 @@
     >
   </nav>
   {#if tab === 'shortcuts'}
+    <div class="app-keys">
+      <span>App</span>{#each appActions as action}<button
+          aria-label={`Find ${action.label} shortcut`}
+          data-tip={`${p.hint(action.id)}\nClick to edit this shortcut.`}
+          onclick={() => {
+            query = action.label;
+            editing = null;
+          }}
+          ><span
+            >{action.id === 'quit'
+              ? 'Quit'
+              : action.id === 'maximize'
+                ? 'Maximize'
+                : action.label}</span
+          ><kbd>{p.label(action.id) || 'Unassigned'}</kbd></button
+        >{/each}
+    </div>
     <div class="search-row">
       <label class="search"
         ><Search size={14} /><input
@@ -260,7 +278,14 @@
           </p>
         </section>
         <section>
-          <h3>4 · Save a comparison</h3>
+          <h3>4 · Home, window & sharing</h3>
+          <p>
+            The Home button or {p.label('home')} opens the start page. Resume comparison returns to the
+            same scene and view. Use {p.label('maximize')} to maximize/restore, {p.label(
+              'minimize',
+            )} to minimize and {p.label('quit') || 'the close button'} to quit. App shortcuts pause while
+            editing text or using a dialog.
+          </p>
           <p>
             <b>Copy PNG</b> captures the displayed comparison without the controls.
             <b>Export offline HTML</b>, in View options, includes every source and scene in a
@@ -330,6 +355,39 @@
     </div>
   {:else}
     <div class="interface-panel">
+      <div class="height-setting">
+        <label for="bar-height"
+          >Top bar height <output for="bar-height">{p.barHeight}px</output></label
+        >
+        <input
+          id="bar-height"
+          aria-label="Top bar height"
+          type="range"
+          min="16"
+          max="44"
+          step="1"
+          value={p.barHeight}
+          oninput={(e) => p.setBarHeight(+e.currentTarget.value)}
+        />
+        <div class="height-presets">
+          {#each [16, 24, 32, 44] as height}<button
+              class:chosen={p.barHeight === height}
+              aria-pressed={p.barHeight === height}
+              onclick={() => p.setBarHeight(height)}
+              >{height}px{height === 16
+                ? ' · Minimal'
+                : height === 32
+                  ? ' · Balanced'
+                  : height === 44
+                    ? ' · Roomy'
+                    : ''}</button
+            >{/each}
+        </div>
+        <p>
+          Changes apply immediately and stay on this device. Hover help and menus remain readable at
+          every size.
+        </p>
+      </div>
       <label class="preference"
         ><div>
           <strong>Auto-hide comparison controls</strong>
@@ -390,7 +448,7 @@
     align-items: start;
     gap: 15px;
     padding: 18px 20px 14px;
-    background: linear-gradient(120deg, #70cab910, transparent);
+    background: #000;
   }
   h2 {
     font-size: 21px;
@@ -436,6 +494,72 @@
   .tabs button.chosen {
     color: #b5e8da;
     border-bottom-color: #8bd1c4;
+  }
+  .app-keys {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 10px 20px 0;
+    font-size: 10px;
+    color: #8fa39c;
+    flex-shrink: 0;
+  }
+  .app-keys button {
+    padding: 5px 8px;
+    background: #ffffff07;
+    border: 1px solid #ffffff0c;
+    border-radius: 4px;
+    font-size: 10px;
+    color: #b1c5bb;
+  }
+  .app-keys kbd {
+    font:
+      9px Consolas,
+      monospace;
+    color: #c6e1d7;
+  }
+  .height-setting {
+    padding: 17px 0;
+    border-bottom: 1px solid #ffffff14;
+  }
+  .height-setting label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  .height-setting output {
+    font:
+      11px Consolas,
+      monospace;
+    color: #bfddd0;
+  }
+  .height-setting input {
+    width: 100%;
+    margin: 15px 0;
+    height: 4px;
+    accent-color: #b7ddd1;
+  }
+  .height-setting p {
+    font-size: 11px;
+    color: #8fa39c;
+    margin: 10px 0 0;
+  }
+  .height-presets {
+    display: flex;
+    gap: 6px;
+  }
+  .height-presets button {
+    background: #ffffff05;
+    border: 1px solid #ffffff10;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #91a79b;
+  }
+  .height-presets button.chosen {
+    border-color: #b7ddd15c;
+    color: #c7e7d9;
   }
   .search-row {
     display: flex;

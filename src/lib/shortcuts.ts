@@ -6,6 +6,7 @@ export interface ShortcutAction {
   defaults: string[];
   repeat?: boolean;
   global?: boolean;
+  since?: number;
 }
 const action = (
   id: string,
@@ -16,6 +17,30 @@ const action = (
   extra: Partial<ShortcutAction> = {},
 ): ShortcutAction => ({ id, label, description, group, defaults, ...extra });
 export const actions: ShortcutAction[] = [
+  action(
+    'home',
+    'Home',
+    'Go to Home; the current comparison stays ready to resume.',
+    'Application',
+    ['Alt+Home'],
+    { global: true, since: 2 },
+  ),
+  action(
+    'maximize',
+    'Maximize / restore',
+    'Toggle between a maximized window and its previous size.',
+    'Application',
+    ['F10'],
+    { global: true, since: 2 },
+  ),
+  action('minimize', 'Minimize', 'Minimize Ayori to the taskbar.', 'Application', ['Ctrl+m'], {
+    global: true,
+    since: 2,
+  }),
+  action('quit', 'Quit Ayori', 'Close Ayori. Source files stay unchanged.', 'Application', ['q'], {
+    global: true,
+    since: 2,
+  }),
   action(
     'openImages',
     'Open images',
@@ -383,10 +408,16 @@ export function readBindings(raw: string | null): Bindings {
   if (!raw) return bindings;
   try {
     const data = JSON.parse(raw);
-    if (data.version !== 1 || !data.bindings || typeof data.bindings !== 'object') return bindings;
+    if (![1, 2].includes(data.version) || !data.bindings || typeof data.bindings !== 'object')
+      return bindings;
     const next: Bindings = {};
     const seen = new Set<string>();
+    const added: ShortcutAction[] = [];
     for (const a of actions) {
+      if (!Object.hasOwn(data.bindings, a.id) && (a.since ?? 1) > data.version) {
+        added.push(a);
+        continue;
+      }
       const values = data.bindings[a.id];
       if (
         !Array.isArray(values) ||
@@ -399,6 +430,11 @@ export function readBindings(raw: string | null): Bindings {
         if (seen.has(key) || validateChord(key, a.id)) return bindings;
         seen.add(key);
       }
+    }
+    // New defaults never steal a key from an existing customization.
+    for (const a of added) {
+      next[a.id] = a.defaults.filter((key) => !seen.has(key));
+      next[a.id].forEach((key) => seen.add(key));
     }
     return next;
   } catch {

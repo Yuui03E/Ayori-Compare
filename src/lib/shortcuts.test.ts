@@ -46,3 +46,26 @@ describe('custom shortcut correctness', () => {
     expect(readBindings(saved({ ...bindings, grid: ['Alt+F4'] }))).toEqual(defaultBindings());
   });
 });
+
+describe('shortcut schema migration', () => {
+  it('adds app keys without erasing old edits or taking their keys', () => {
+    const legacy = Object.fromEntries(
+      actions.filter((a) => !a.since).map((a) => [a.id, [...a.defaults]]),
+    );
+    legacy.grid = ['q'];
+    legacy.fit = [];
+    const migrated = readBindings(JSON.stringify({ version: 1, bindings: legacy }));
+    expect(migrated.grid).toEqual(['q']);
+    expect(migrated.fit).toEqual([]);
+    expect(migrated.quit).toEqual([]);
+    expect(migrated.maximize).toEqual(['F10']);
+    expect(migrated.home).toEqual(['Alt+Home']);
+    expect(new Set(Object.values(migrated).flat()).size).toBe(
+      Object.values(migrated).flat().length,
+    );
+  });
+  it('retains edited and cleared application commands in version 2', () => {
+    const bindings = { ...defaultBindings(), quit: ['Ctrl+q'], minimize: [] };
+    expect(readBindings(JSON.stringify({ version: 2, bindings }))).toEqual(bindings);
+  });
+});

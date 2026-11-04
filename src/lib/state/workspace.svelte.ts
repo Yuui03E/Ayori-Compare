@@ -11,6 +11,8 @@ import { residentSlots } from '../residency';
 
 export class AyoriWorkspace {
   matrix = $state.raw<ComparisonMatrix | null>(null);
+  home = $state(false);
+  comparing = $derived(!!this.matrix && !this.home);
   sceneIndex = $state(0);
   frames = $state.raw<(Frame | null)[]>(Array(8).fill(null));
   errors = $state.raw<Record<number, string>>({});
@@ -46,6 +48,7 @@ export class AyoriWorkspace {
   renderer: Renderer | null = null;
   epoch = 0;
   private generation = 0;
+  private navigationRevision = 0;
   private revisions = Array(8).fill(0);
   private metricRevision = 0;
   private toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -74,6 +77,23 @@ export class AyoriWorkspace {
       this.message = '';
     }, 9000);
   }
+  showHome() {
+    this.navigationRevision++;
+    this.home = true;
+    this.hudHidden = false;
+    this.hudLocked = false;
+    this.drawer = false;
+    this.sourceBrowser = false;
+    this.help = false;
+    this.loupe(false);
+  }
+  resumeComparison() {
+    if (!this.matrix) return;
+    this.navigationRevision++;
+    this.home = false;
+    this.hudHidden = false;
+    this.renderer?.invalidate();
+  }
   async choose(folders = false, append = false) {
     if (!isTauri()) {
       this.notify('Open the desktop app to load files. You can explore the sample here.');
@@ -100,10 +120,12 @@ export class AyoriWorkspace {
       return;
     }
     this.importing = true;
+    const navigation = this.navigationRevision;
     try {
       const matrix = await invoke<ComparisonMatrix>('import_sources', { paths, append });
       this.demo = false;
       this.matrix = matrix;
+      if (navigation === this.navigationRevision) this.home = false;
       this.warnings = matrix.warnings;
       this.slotA = 0;
       this.slotB = 1;
@@ -117,8 +139,10 @@ export class AyoriWorkspace {
     }
   }
   async showDemo() {
+    if (this.importing) return;
     this.demo = true;
     this.matrix = demoMatrix;
+    this.home = false;
     this.warnings = [];
     this.slotA = 0;
     this.slotB = 1;

@@ -10,10 +10,15 @@ import {
 } from '../shortcuts';
 const KEY = 'ayori.shortcuts.v1';
 const UI_KEY = 'ayori.interface.v1';
+export const normalizeBarHeight = (value: unknown) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(16, Math.min(44, Math.round(value)))
+    : 32;
 class Preferences {
   bindings = $state.raw<Bindings>(defaultBindings());
   autoHide = $state(true);
   tooltips = $state(true);
+  barHeight = $state(32);
   error = $state('');
   constructor() {
     try {
@@ -21,6 +26,7 @@ class Preferences {
       const ui = JSON.parse(localStorage.getItem(UI_KEY) ?? '{}');
       this.autoHide = ui.autoHide !== false;
       this.tooltips = ui.tooltips !== false;
+      this.barHeight = normalizeBarHeight(ui.barHeight);
     } catch {
       /* Storage may be unavailable; defaults still work. */
     }
@@ -51,6 +57,10 @@ class Preferences {
     this.bindings = { ...this.bindings, [id]: [] };
     this.save();
   }
+  setBarHeight(value: number) {
+    this.barHeight = normalizeBarHeight(value);
+    this.save();
+  }
   reset(id?: string) {
     if (!id) this.bindings = defaultBindings();
     else {
@@ -64,10 +74,14 @@ class Preferences {
   }
   save() {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ version: 1, bindings: this.bindings }));
+      localStorage.setItem(KEY, JSON.stringify({ version: 2, bindings: this.bindings }));
       localStorage.setItem(
         UI_KEY,
-        JSON.stringify({ autoHide: this.autoHide, tooltips: this.tooltips }),
+        JSON.stringify({
+          autoHide: this.autoHide,
+          tooltips: this.tooltips,
+          barHeight: this.barHeight,
+        }),
       );
       this.error = '';
     } catch {

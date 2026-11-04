@@ -181,3 +181,7 @@ The next implementation milestone is the foundation plus an early precision/perf
 ## Subsequent user decision — compact controls and focused help
 
 The user approved the typography and general styling, then requested less empty space, a single slim top row, compact hover information, essential shortcuts before optional commands, and help for both operating the app and comparing images. This supersedes the earlier large A/B cards and floating control islands. Retain editable saved assignments and large-collection import behavior while presenting only essential bindings initially. The new UI must remain usable at the 960×600 minimum window size.
+
+## Subsequent user decision — adjustable pure-black bar, Home and window keys
+
+The user requested a configurable 16–44px top bar, pure-black styling, the visible name **Ayori**, Q to close, shortcuts for minimizing/maximizing and a way to return Home. Implementation uses a 32px default with saved integer height and presets, preserves a resumable comparison on Home, and exposes four editable app commands without overwhelming the essential comparison list. Existing saved shortcuts must migrate without key theft or resets. Retain comparison precision and explicit missing/alpha information while simplifying secondary labels at the smallest sizes.

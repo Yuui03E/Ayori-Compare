@@ -1,10 +1,20 @@
 <script lang="ts">
-  import { FolderOpen, Images, ArrowUpRight, ScanLine, Keyboard } from '@lucide/svelte';
+  import { FolderOpen, Images, ArrowUpRight, ScanLine, Keyboard, ArrowLeft } from '@lucide/svelte';
   import { workspace as w } from '../state/workspace.svelte';
   import { preferences as p } from '../state/preferences.svelte';
 </script>
 
-<main class="empty">
+<main class="empty" class:resumable={!!w.matrix}>
+  {#if w.matrix}<button
+      class="resume"
+      onclick={() => w.resumeComparison()}
+      data-tip="Return to your comparison with the same sources, scene, pan and zoom."
+      ><ArrowLeft size={15} /><span
+        >Resume comparison<small
+          >{w.matrix.sources.length} sources · {w.matrix.scenes.length} scenes</small
+        ></span
+      ></button
+    >{/if}
   <div class="intro">
     <div class="eyebrow"><span></span> A CLOSER LOOK</div>
     <h1>Every detail.<br /><span>Side by side.</span></h1>
@@ -62,6 +72,7 @@
   </div>
   <button
     class="sample"
+    disabled={w.importing}
     data-tip="Explore the inspection modes with generated sample images. No files are needed."
     onclick={() => w.showDemo()}>Explore a sample comparison <ArrowUpRight size={14} /></button
   >
@@ -76,13 +87,42 @@
 <style>
   .empty {
     position: absolute;
-    inset: 44px 0 0;
+    inset: var(--bar-height) 0 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: radial-gradient(ellipse at 50% 40%, #273b351e, transparent 58%);
+    background: #000;
     padding-bottom: 30px;
+  }
+  .resume {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 15px;
+    border: 1px solid #b7ddd136;
+    border-radius: 6px;
+    background: #000;
+    color: #b7ddd1;
+    margin: 0 0 15px;
+    font-size: 12px;
+  }
+  .resume small {
+    display: block;
+    color: #85978d;
+    font-size: 10px;
+    margin-top: 3px;
+  }
+  .resumable .intro p {
+    display: none;
+  }
+  .resumable .intro {
+    margin-bottom: 12px;
+  }
+  @media (max-height: 700px) {
+    .resumable .intro {
+      display: none;
+    }
   }
   .intro {
     text-align: center;

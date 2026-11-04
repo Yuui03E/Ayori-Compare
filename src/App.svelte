@@ -23,6 +23,9 @@
   let pan: Point | null = null;
   let loupeKey = '';
   let rightHeld = false;
+  $effect(() => {
+    if (!w.comparing) blur();
+  });
   function activity(event?: PointerEvent) {
     lastActivity = performance.now();
     if (event) hoveringHud = !!(event.target as Element)?.closest?.('[data-hud]');
@@ -49,7 +52,7 @@
       return;
     if (target.closest('button,a') && [' ', 'Enter'].includes(event.key)) return;
     const action = p.match(event);
-    if (!action || (!w.matrix && !action.global)) return;
+    if (!action || (!w.comparing && !action.global)) return;
     event.preventDefault();
     if (event.repeat && !action.repeat) return;
     if (action.id === 'loupe') {
@@ -84,7 +87,7 @@
     let disposed = false;
     const cleanups: (() => void)[] = [];
     const down = (e: PointerEvent) => {
-      if (!w.matrix) return;
+      if (!w.comparing) return;
       canvas.focus({ preventScroll: true });
       w.move(e);
       if (e.button === 2) {
@@ -100,6 +103,7 @@
       }
     };
     const move = (e: PointerEvent) => {
+      if (!w.comparing) return;
       if (pan) {
         const next = w.renderer!.point(e);
         w.renderer!.panBy({ x: next.x - pan.x, y: next.y - pan.y });
@@ -116,7 +120,7 @@
       if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
     };
     const wheel = (e: WheelEvent) => {
-      if (!w.matrix) return;
+      if (!w.comparing) return;
       e.preventDefault();
       activity();
       w.renderer!.zoomTo(w.zoom * (e.deltaY < 0 ? 1.25 : 0.8), w.renderer!.point(e));
@@ -133,7 +137,7 @@
       if (!w.hudLocked)
         w.hudHidden =
           p.autoHide &&
-          !!w.matrix &&
+          w.comparing &&
           !hoveringHud &&
           !document.activeElement?.closest('[data-hud]') &&
           !document.querySelector('[popover=auto]:popover-open') &&
@@ -184,57 +188,71 @@
 </script>
 
 <svelte:window onkeydown={keydown} onkeyup={keyup} onpointermove={activity} onblur={blur} />
-<canvas
-  bind:this={canvas}
-  class:idle={!w.matrix}
-  aria-label="Image comparison viewport"
-  tabindex="0"
-></canvas>
-{#if !w.matrix}<EmptyDropzone />{/if}
-<div class="hud" class:hidden={w.hudHidden}>
-  <Titlebar onerror={(message) => w.notify(message)}>
-    {#if w.matrix}<TopSourceBar />{/if}
-  </Titlebar>
-</div>
-{#if w.fallback}<div
-    class="precision"
-    data-tip="This GPU uses 8-bit preview textures. Differences and effects use that preview precision. Exact decoded 16-bit source values remain available in the pixel readout."
-  >
-    8-bit preview · exact source readout retained
-  </div>{/if}
-{#if w.matrix && !w.loading && (!w.frames[w.slotA] || ([1, 2, 3].includes(w.mode) && !w.frames[w.slotB]))}<div
-    class="missing-label"
-  >
-    {w.pendingSlots.includes(w.slotA) ||
-    ([1, 2, 3].includes(w.mode) && w.pendingSlots.includes(w.slotB))
-      ? 'Preparing selected image…'
-      : w.errors[w.slotA] || w.errors[w.slotB]
-        ? 'A selected image could not be decoded. See Browse sources for details.'
-        : 'A selected source is missing from this scene.'}
-  </div>{/if}
-<PixelReadout />
-{#if w.message}<div class="toast glass" role="status">
-    <span>{w.message}</span><button
-      aria-label="Dismiss notification"
-      onclick={() => (w.message = '')}><X size={14} /></button
+<div
+  class="application"
+  style:--bar-height={`${p.barHeight}px`}
+  style:--bar-control-height={`${Math.max(14, p.barHeight - 8)}px`}
+  style:--bar-icon-size={`${p.barHeight < 24 ? 12 : 15}px`}
+  style:--bar-font-size={`${p.barHeight < 24 ? 9 : 11}px`}
+>
+  <canvas
+    bind:this={canvas}
+    class:idle={!w.comparing}
+    aria-label="Image comparison viewport"
+    tabindex="0"
+  ></canvas>
+  {#if !w.comparing}<EmptyDropzone />{/if}
+  <div class="hud" class:hidden={w.hudHidden}>
+    <Titlebar onerror={(message) => w.notify(message)}>
+      {#if w.comparing}<TopSourceBar />{/if}
+    </Titlebar>
+  </div>
+  {#if w.comparing && w.fallback}<div
+      class="precision"
+      data-tip="This GPU uses 8-bit preview textures. Differences and effects use that preview precision. Exact decoded 16-bit source values remain available in the pixel readout."
     >
-  </div>{/if}
-{#if rendererError}<div class="error glass" role="alert">
-    <h2>Unable to start the viewport</h2>
-    <p>{rendererError}</p>
-  </div>{/if}
-{#if w.draggingFiles}<div class="drop-overlay">
-    <Upload size={34} />
-    <h2>{altHeld ? 'Add comparison sources' : 'Drop to compare'}</h2>
-    <p>
-      {altHeld ? 'Append to the current matrix' : 'Images for one scene · Folders for a sequence'}
-    </p>
-  </div>{/if}
-<HelpDialog />
-<SourceBrowser />
-<Tooltip />
+      8-bit preview · exact source readout retained
+    </div>{/if}
+  {#if w.comparing && !w.loading && (!w.frames[w.slotA] || ([1, 2, 3].includes(w.mode) && !w.frames[w.slotB]))}<div
+      class="missing-label"
+    >
+      {w.pendingSlots.includes(w.slotA) ||
+      ([1, 2, 3].includes(w.mode) && w.pendingSlots.includes(w.slotB))
+        ? 'Preparing selected image…'
+        : w.errors[w.slotA] || w.errors[w.slotB]
+          ? 'A selected image could not be decoded. See Browse sources for details.'
+          : 'A selected source is missing from this scene.'}
+    </div>{/if}
+  {#if w.comparing}<PixelReadout />{/if}
+  {#if w.message}<div class="toast glass" role="status">
+      <span>{w.message}</span><button
+        aria-label="Dismiss notification"
+        onclick={() => (w.message = '')}><X size={14} /></button
+      >
+    </div>{/if}
+  {#if rendererError}<div class="error glass" role="alert">
+      <h2>Unable to start the viewport</h2>
+      <p>{rendererError}</p>
+    </div>{/if}
+  {#if w.draggingFiles}<div class="drop-overlay">
+      <Upload size={34} />
+      <h2>{altHeld ? 'Add comparison sources' : 'Drop to compare'}</h2>
+      <p>
+        {altHeld ? 'Append to the current matrix' : 'Images for one scene · Folders for a sequence'}
+      </p>
+    </div>{/if}
+  <HelpDialog />
+  <SourceBrowser />
+  <Tooltip />
+</div>
 
 <style>
+  .application {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+  }
   canvas {
     position: absolute;
     inset: 0;
@@ -263,7 +281,7 @@
   .precision {
     position: absolute;
     right: 22px;
-    top: 52px;
+    top: calc(var(--bar-height) + 8px);
     font:
       9px Consolas,
       monospace;
@@ -319,7 +337,7 @@
   }
   .drop-overlay {
     position: absolute;
-    inset: 52px 16px 16px;
+    inset: calc(var(--bar-height) + 8px) 16px 16px;
     border: 1px dashed #a0debd;
     border-radius: 17px;
     background: #101b17ee;

@@ -220,3 +220,53 @@ describe('asynchronous workspace lifetime', () => {
     expect(w.scores).toEqual({});
   });
 });
+
+describe('Home preserves comparison state', () => {
+  it('keeps loaded source data and the active scene when a load finishes on Home', async () => {
+    vi.useFakeTimers();
+    const { w, renderer } = setup();
+    const loading = deferred<ArrayBuffer>();
+    invoke.mockImplementation((cmd) => {
+      if (cmd === 'activate_scene') return Promise.resolve({ epoch: 1 });
+      if (cmd === 'load_frame_binary') return loading.promise;
+      return Promise.resolve();
+    });
+    const pending = w.loadScene(1);
+    await vi.advanceTimersByTimeAsync(0);
+    w.showHome();
+    loading.resolve(packet(42));
+    await pending;
+    expect(w.home).toBe(true);
+    expect(w.comparing).toBe(false);
+    expect(w.sceneIndex).toBe(1);
+    expect(w.frames[0]?.pixels[0]).toBe(42);
+    expect(w.matrix?.sources).toHaveLength(2);
+    const current = w.frames[0];
+    renderer.view = { zoom: 2, pan: { x: 15, y: 20 } };
+    w.resumeComparison();
+    expect(w.comparing).toBe(true);
+    expect(w.frames[0]).toBe(current);
+    expect(renderer.view).toEqual({ zoom: 2, pan: { x: 15, y: 20 } });
+  });
+});
+
+it('does not let an earlier import navigate away from a later Home request', async () => {
+  vi.useFakeTimers();
+  const { w } = setup();
+  const importing = deferred<ComparisonMatrix>();
+  const matrix = w.matrix!;
+  invoke.mockImplementation((cmd) => {
+    if (cmd === 'import_sources') return importing.promise;
+    if (cmd === 'activate_scene') return Promise.resolve({ epoch: 1 });
+    if (cmd === 'load_frame_binary') return Promise.resolve(packet(7));
+    return Promise.resolve();
+  });
+  const pending = w.importPaths(['new-source']);
+  w.showHome();
+  importing.resolve(matrix);
+  await pending;
+  expect(w.home).toBe(true);
+  expect(w.frames[0]?.pixels[0]).toBe(7);
+  w.resumeComparison();
+  expect(w.comparing).toBe(true);
+});

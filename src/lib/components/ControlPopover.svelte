@@ -17,7 +17,8 @@
   function position() {
     if (!panel || !anchor) return;
     const rect = anchor.getBoundingClientRect();
-    panel.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - panel.offsetWidth - 8))}px`;
+    const width = panel.offsetWidth || parseFloat(getComputedStyle(panel).width);
+    panel.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - width - 8))}px`;
     panel.style.top = `${rect.bottom + 7}px`;
   }
   $effect(() => {
@@ -37,6 +38,7 @@
   aria-label={label}
   data-hud
   onbeforetoggle={(event) => {
+    if (event.newState === 'open') position();
     if (event.newState === 'closed') {
       if (panel.contains(document.activeElement)) anchor?.focus();
     }
@@ -66,7 +68,7 @@
     padding: 8px;
     border: 1px solid #9fc9be29;
     border-radius: 9px;
-    background: #111a1bfc;
+    background: #080808;
     box-shadow: 0 12px 36px #0009;
     color: #ccdad6;
   }

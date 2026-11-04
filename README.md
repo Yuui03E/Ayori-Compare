@@ -1,12 +1,12 @@
-# Ayori Compare
+# Ayori
 
 A Windows-first desktop image comparison tool for anime encoders. Built with Tauri 2, Rust, Svelte 5, and WebGL2.
 
 Open individual images to compare alternatives of one frame, or one folder per release/encoding group to match scenes by filename or frame number. Collections can contain 100+ images or sources; selected and nearby images load as you browse. Click either source name or **Search** (`Ctrl+K`) to assign A/B, and **+ → Add sources** to extend a comparison.
 
-A single 44-pixel top bar keeps A/B, inspection modes, scenes and zoom close at hand. Hover or focus a control for compact details and its current shortcut. **View options** contains zoom presets, filtering, effect strength and offline HTML export. Source metadata and scores appear on hover instead of covering the image.
+A pure-black top bar keeps A/B, inspection modes, scenes and zoom close at hand. Hover or focus a control for compact details and its current shortcut. **View options** contains zoom presets, filtering, effect strength and offline HTML export. Source metadata and scores appear on hover instead of covering the image. Adjust the height from **16–44px** in **Help → Interface**; the default is 32px. The black canvas surround retains explicit missing-frame and transparency patterns.
 
-**Help & shortcuts** (`F1` or `Ctrl+,`) starts with 12 essential actions, led by flicker, fit/100%, loupe and comparison modes. Search any action or choose **Show more shortcuts** for optional bindings. Every assignment is editable with conflict checking and automatic local saving; existing custom assignments are preserved. **Using & comparing** covers imports, navigation, sharing, frame alignment, detail, banding and interpreting scores.
+**Help & shortcuts** (`F1` or `Ctrl+,`) starts with 12 essential actions, led by flicker, fit/100%, loupe and comparison modes. Search any action or choose **Show more shortcuts** for optional bindings. Every assignment is editable with conflict checking and automatic local saving; existing custom assignments are preserved. **Using & comparing** covers imports, navigation, sharing, frame alignment, detail, banding and interpreting scores. A compact App row links to the editable window commands: **Q** quits, **Ctrl+M** minimizes, **F10** maximizes/restores, and **Alt+Home** opens Home. These shortcuts do not run while typing or using a dialog. Home keeps the comparison ready to resume with the same scene, sources, mode, pan and zoom. Existing custom assignments are preserved when new defaults are added.
 
 - [Current implementation status and resume point](docs/PROGRESS.md)
 - [Approved requirements and execution plan](docs/requirements_review_and_execution_plan.md)
