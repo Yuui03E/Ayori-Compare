@@ -191,6 +191,7 @@ dependencies = [
 name = "ayori-compare"
 version = "0.1.0"
 dependencies = [
+ "arboard",
  "avif-decode",
  "avif-parse",
  "base64 0.22.1",

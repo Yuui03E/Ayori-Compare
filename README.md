@@ -5,6 +5,7 @@ A Windows-first desktop image comparison tool for anime encoders. Built with Tau
 - [Current implementation status and resume point](docs/PROGRESS.md)
 - [Approved requirements and execution plan](docs/requirements_review_and_execution_plan.md)
 - [Original product requirements](docs/product_requirements_document_prd.md)
+- [Release checks, benchmarks, and remaining qualification](docs/RELEASE_VALIDATION.md)
 
 ## Development
 

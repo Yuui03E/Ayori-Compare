@@ -73,7 +73,8 @@ fn main() {
     let packet = measure(|| {
         black_box(frames[0].packet());
     });
-    // Independent PNG decoder comparison includes its RGBA expansion and CRC checks.
+    // Convenience API comparison includes cloning an already-RGBA image, unlike
+    // the consuming conversion in the application path.
     let image_png = measure(|| {
         pool.install(|| {
             inputs.par_iter().for_each(|b| {
@@ -90,7 +91,7 @@ fn main() {
         serde_json::to_string_pretty(&json!({
             "threads":4,"cache":"warm filesystem; resident compressed data for decodeOnly",
             "corpus":corpus,"readDecodeRgba":read_decode,"decodeOnlyRgba":decode_only,
-            "readOnly":read_only,"oneFramePacket":packet,"comparisonImagePng":image_png
+        "readOnly":read_only,"oneFramePacket":packet,"imageConvenienceApiWithClone":image_png
         }))
         .unwrap()
     );

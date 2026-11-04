@@ -16,11 +16,11 @@ This is the current handoff record. Read it before making changes and update it 
 | --- | --- | --- |
 | 0. Requirements and Git | Complete | Both source documents reviewed, decisions recorded, repository initialized. |
 | 1. Foundation | Development and packaged launch verified | Packaged app launches on its own; native file picker imports the user's WEBP pair. Clean-machine prerequisites remain untested. |
-| 2. Renderer and precision proof | Correctness and synthetic decode target verified; other performance work remains | Exact samples and fallback pass. Four-frame PNG batch now measures 18.39 ms median / 19.17 ms p95. Isolated IPC/240 Hz evidence pending. |
+| 2. Renderer and precision proof | Correctness and synthetic decode target verified; IPC target unmet | Exact samples and fallback pass. Four-frame PNG batch: 18.39 ms median / 19.17 ms p95. Raw IPC: 65.90 ms median with debugger detached. Real 240 Hz evidence pending. |
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
-| 4. Inspection tools | Implemented and smoke-verified | All modes render without GL errors; identity differences, flicker, HUD lock, and pixel readout pass. Broader mixed-DPI hardware coverage remains. |
+| 4. Inspection tools | Implemented and smoke-verified | Modes, flicker, readout, eight mixed-depth 4K textures, and emulated 100/125/150/200% scaling pass. Physical mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
-| 6. Sharing and release | Sharing verified; Windows executable built | Clipboard/offline HTML pass. Optimized executable is 8,340,480 bytes. Packaged launch and Linux validation remain pending. |
+| 6. Sharing and release | Sharing and final Windows executable verified; full qualification incomplete | Clipboard matches every captured pixel; offline HTML passes. Final executable is 8,285,184 bytes and packaged workflows pass. Linux/clean-machine/high-refresh testing and IPC improvement remain. |
 
 ## Completed steps
 
@@ -32,9 +32,9 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Resume here
 
-Packaged Windows launch and native file import are now verified with development instances closed. Continue instrumented clipboard/window checks and IPC/frame-pacing benchmarks, then rebuild the final executable with the faster PNG decoder. Do not treat the older executable as containing the latest decoder changes.
+The final normal Windows executable has been rebuilt and verified. Core features, sharing, exact source samples, generated 10/12-bit AVIF, expanded PNG formats, stale-work guards, and the synthetic PNG decode target pass. See `docs/RELEASE_VALIDATION.md` for the full evidence and reproducible test commands.
 
-After that, focus on the remaining decode/IPC/frame-pacing benchmarks, mixed-DPI hardware coverage, and Linux validation. The application and all core features already exist; do not restart scaffolding or reimplement the renderer, decoder, matching, watcher, metrics, or exporter.
+Next engineering work is the raw binary IPC performance shortfall: 65.90 ms median with the debugger detached versus the <5 ms target, measured without decoding or GPU upload. A faster transfer mechanism needs precision, ownership and cross-platform checks. Linux/AppImage, clean-machine prerequisites, physical mixed-DPI and 240 Hz validation need suitable environments. Do not rebuild completed features.
 
 Current executable: `src-tauri/target/release/ayori-compare.exe`. Development command: `npm run desktop`. Development verification tools used a WebView2 debugging port of 9223. A development app and Vite server may still be running; inspect before starting duplicate instances.
 
@@ -99,10 +99,10 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 
 ## Outstanding acceptance work
 
-- Verify packaged Windows launch, dialogs, window controls, import and clipboard with development instances closed; test WebView2 prerequisites on a clean machine.
+- Packaged Windows launch, file dialog/import, window controls and lossless clipboard checks pass. Test WebView2 prerequisites on a clean machine.
 - PNG batch target now passes on the generated corpus; broaden representative corpus coverage and record hardware/environment limits.
-- Measure isolated IPC overhead, 240 Hz frame pacing, and total peak CPU/GPU memory. Sub-clock-resolution source-switch readings are not sufficient proof.
-- Broaden real 10/12-bit AVIF, PNG palette/low-depth, device scaling, GPU fallback, and large/mixed-aspect image coverage.
+- Improve raw IPC: isolated transfer remains 65.90 ms median / 68.40 ms p95, with no debugger attached. 60 Hz pacing passes, but real 240 Hz presentation remains unverified. CPU/GPU sampled peaks are recorded; no numeric total ceiling has been approved.
+- Physical mixed-monitor scaling and broader AVIF YUV/subsampling coverage remain. Generated identity-matrix 10/12-bit AVIF, palette/low-depth PNG, emulated device scaling, forced GPU fallback and eight mixed-depth/aspect 4K textures now pass.
 - Run the Linux AppImage build and runtime checks on Linux. CI configuration exists but has not run.
 - npm reports two low-severity development-only findings from the Svelte Vite plugin's `deepmerge` dependency, with no published fix in the queried audit. Production dependency audit reports none.
 
@@ -126,3 +126,14 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 - All four user-supplied WEB-DL/encode pairs loaded at 1920×1080 and produced finite scores. At 100%, sampled GPU pixels equal exact source pixels in each scene. Across 24 additional scene changes, 48 textures were created and 48 deleted, ending with two active sources and no GL error.
 - Device scaling emulation inside actual WebView2 passes at 100%, 125%, 150%, and 200%, including exact nearest pixels, cursor transforms, mixed-aspect dimensions, and matching split-panel samples. This does not replace physical mixed-monitor testing.
 - Packaged frontend checks confirm clipboard success and maximize/restore with the user's two-source, four-scene matrix. Custom close control exits successfully. Final rebuilt executable and clipboard byte-for-byte verification remain next.
+
+### 2026-11-04 — Final Windows artifact and measured release limits
+
+- `npm run desktop:build` passes with zero Svelte errors/warnings. Final executable is **8,285,184 bytes**; SHA-256 is recorded in `RELEASE_VALIDATION.md`. Normal build rejects opt-in measurement commands and exposes no development workspace hook.
+- Final packaged workflows pass for the user's two-source/four-scene WEBP matrix and for real 10/12-bit AVIF worker imports. Verified maximize/restore, minimize, custom close, and the actual displayed comparison UI.
+- Native clipboard reader matched all **1,296,000 RGBA pixels** from a captured 1440×900 comparison. Offline viewer smoke remains green.
+- Added opt-in fixed-buffer native IPC measurements, batched source-switch/draw/frame-pacing measurements, detached-debugger transfer probe, device-scale checks, eight-slot 4K allocation/clearing checks, and process-tree memory sampling. CI now enforces the Windows <10 MB executable target.
+- IPC target is **not met**: optimized native backend 74.60 ms median with debugger attached and 65.90 ms detached for 14,745,632 bytes. This excludes disk/decode/upload and includes the native response copy and dispatch. It must not be described as zero-copy or <5 ms.
+- Source-selection batch averages measure 0.0004 ms per operation; draw submission p95 0.10 ms. 290 frame intervals at the current 60 Hz mode showed zero stalls over 1.5× median. These do not establish individual-input latency or 240 Hz behavior.
+- Fresh release import/scoring/copy/window-resize workload: sampled peak private memory 600,997,888 bytes, aggregate working sets 692,740,096 bytes, dedicated GPU 218,591,232 bytes, shared GPU 77,869,056 bytes. These are sampled observations, not hard ceilings.
+- Current remaining work: IPC transport improvement; external Linux, clean-machine, physical mixed-DPI and 240 Hz qualification; unresolved low-severity development dependency advisory. All other completed checks and limitations are in the release-validation document.

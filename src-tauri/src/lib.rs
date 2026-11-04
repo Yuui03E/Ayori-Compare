@@ -1,4 +1,6 @@
 pub mod decoder;
+#[cfg(feature = "diagnostics")]
+mod diagnostics;
 mod exporter;
 pub mod matrix;
 mod metrics;
@@ -164,17 +166,31 @@ async fn export_html(path: String, state: State<'_, Backend>) -> Result<(), Stri
 }
 
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
-        .manage(Backend::default())
+        .manage(Backend::default());
+    #[cfg(feature = "diagnostics")]
+    let builder = builder
+        .manage(diagnostics::DiagnosticBuffer::default())
         .invoke_handler(tauri::generate_handler![
             import_sources,
             activate_scene,
             load_frame_binary,
             compute_metrics,
-            export_html
-        ])
+            export_html,
+            diagnostics::benchmark_prepare,
+            diagnostics::benchmark_transfer
+        ]);
+    #[cfg(not(feature = "diagnostics"))]
+    let builder = builder.invoke_handler(tauri::generate_handler![
+        import_sources,
+        activate_scene,
+        load_frame_binary,
+        compute_metrics,
+        export_html
+    ]);
+    builder
         .run(tauri::generate_context!())
         .expect("Unable to start Ayori Compare");
 }

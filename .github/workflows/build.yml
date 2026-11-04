@@ -38,6 +38,13 @@ jobs:
       - name: Portable Windows executable
         if: runner.os == 'Windows'
         run: npm run desktop:build
+      - name: Windows executable size target
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bytes = (Get-Item src-tauri/target/release/ayori-compare.exe).Length
+          if ($bytes -ge 10000000) { throw "Executable exceeds the 10 MB target: $bytes bytes" }
+          Write-Output "Portable executable: $bytes bytes"
       - name: Linux AppImage
         if: runner.os == 'Linux'
         run: npm run tauri -- build --bundles appimage
