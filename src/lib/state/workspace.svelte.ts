@@ -197,7 +197,7 @@ export class AyoriWorkspace {
     this.fallback = this.renderer!.fallback.some(Boolean);
   }
   onFileChanged(event: { epoch: number; path: string }) {
-    if (this.demo || event.epoch !== this.epoch || !this.matrix) return;
+    if (this.disposed || this.demo || event.epoch !== this.epoch || !this.matrix) return;
     const slot = this.matrix.scenes[this.sceneIndex].frames.indexOf(event.path);
     if (slot < 0) return;
     this.metricRevision++;
@@ -230,7 +230,7 @@ export class AyoriWorkspace {
     }, 350);
   }
   onMetric(metric: Metric & { epoch: number; revision: number }) {
-    if (metric.epoch === this.epoch && metric.revision === this.metricRevision)
+    if (!this.disposed && metric.epoch === this.epoch && metric.revision === this.metricRevision)
       this.scores = { ...this.scores, [metric.slot]: metric };
   }
   select(slot: number, secondary = false) {
@@ -372,6 +372,7 @@ export class AyoriWorkspace {
   dispose() {
     this.disposed = true;
     this.generation++;
+    this.metricRevision++;
     this.refreshTimers.forEach(clearTimeout);
     clearTimeout(this.scoreTimer);
     clearTimeout(this.toastTimer);

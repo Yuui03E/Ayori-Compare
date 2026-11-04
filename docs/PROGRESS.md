@@ -116,3 +116,13 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 - All 15 Rust library tests pass. New correctness coverage verifies 1/2/4-bit grayscale, palette transparency, RGB16 and grayscale-alpha16 low bits, IDAT CRC rejection, and truncated PNGs. Dimensions are checked before full decoded-image allocation.
 - Hardware discovery: current display mode is 2560×1440 at 60 Hz on RTX 5070. WSL/Linux is not installed; genuine 240 Hz and Linux runtime evidence require an appropriate environment.
 - Next: instrument IPC and responsiveness, verify final packaged build/sharing, expand high-depth AVIF and mixed-DPI coverage.
+
+### 2026-11-04 — Broader precision, stale-work, and native workflow checks
+
+- Generated tiny original 10-bit and 12-bit identity-matrix AVIF ramps using libavif 1.4.2. Worker tests check all encoded RGB samples survive conversion/AYRI and preserve actual source depth; alpha is opaque. The decoder expands RGB by reversible bit replication. No user images or downloaded tools are tracked.
+- Added asynchronous workspace tests for out-of-order scene packets, overlapping source reloads, sparse slots, and disposal. Found and fixed metrics being accepted after disposal; disposal now invalidates metric revisions, and late watcher/metric events are ignored.
+- All 18 Rust tests (15 unit + 3 worker tests) and all 10 frontend tests pass. Svelte check reports zero errors/warnings; strict Clippy passes for all features and targets.
+- Native integration and offline workflow scripts pass after the decoder change: exact pixels, all shader modes, sparse scenes, rapid scene transitions, 16-bit GPU fallback, atomic hot reload preserving view state, clipboard success, and network-free HTML.
+- All four user-supplied WEB-DL/encode pairs loaded at 1920×1080 and produced finite scores. At 100%, sampled GPU pixels equal exact source pixels in each scene. Across 24 additional scene changes, 48 textures were created and 48 deleted, ending with two active sources and no GL error.
+- Device scaling emulation inside actual WebView2 passes at 100%, 125%, 150%, and 200%, including exact nearest pixels, cursor transforms, mixed-aspect dimensions, and matching split-panel samples. This does not replace physical mixed-monitor testing.
+- Packaged frontend checks confirm clipboard success and maximize/restore with the user's two-source, four-scene matrix. Custom close control exits successfully. Final rebuilt executable and clipboard byte-for-byte verification remain next.
