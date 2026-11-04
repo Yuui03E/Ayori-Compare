@@ -205,6 +205,7 @@ export class Renderer {
       throw new Error(`GPU upload failed (${error}). Image may exceed available graphics memory.`);
     }
     this.textures[slot] = texture;
+    if (this.frames[slot] !== frame) this.frames[slot]?.release?.();
     this.frames[slot] = frame;
     this.fallback[slot] = fallback;
     if (old) gl.deleteTexture(old);
@@ -214,6 +215,7 @@ export class Renderer {
   remove(slot: number) {
     if (this.textures[slot]) this.gl.deleteTexture(this.textures[slot]);
     this.textures[slot] = null;
+    this.frames[slot]?.release?.();
     this.frames[slot] = null;
     this.fallback[slot] = false;
     this.updateBase();

@@ -210,6 +210,8 @@ dependencies = [
  "tauri-plugin-dialog",
  "tempfile",
  "tokio",
+ "webview2-com",
+ "windows",
 ]
 
 [[package]]

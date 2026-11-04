@@ -5,6 +5,7 @@ mod exporter;
 pub mod matrix;
 mod metrics;
 pub mod models;
+mod transport;
 mod watcher;
 
 use models::ComparisonMatrix;
@@ -15,7 +16,7 @@ use std::{
         atomic::{AtomicU64, Ordering},
     },
 };
-use tauri::State;
+use tauri::{Manager, State};
 
 struct Backend {
     matrix: Mutex<Option<ComparisonMatrix>>,
@@ -127,6 +128,56 @@ async fn load_frame_binary(
 }
 
 #[tauri::command]
+async fn load_frame_shared(
+    path: String,
+    epoch: u64,
+    request: String,
+    window: tauri::WebviewWindow,
+    state: State<'_, Backend>,
+) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        if !state
+            .active
+            .lock()
+            .map_err(|e| e.to_string())?
+            .iter()
+            .flatten()
+            .any(|p| p == &path)
+        {
+            return Err("Image is not part of the active scene.".into());
+        }
+        // Keep the permit through delivery, bounding native mappings as well as decodes.
+        let _permit = state
+            .decode_slots
+            .clone()
+            .acquire_owned()
+            .await
+            .map_err(|e| e.to_string())?;
+        let current = state.epoch.clone();
+        let check = current.clone();
+        let packet = tauri::async_runtime::spawn_blocking(move || {
+            if check.load(Ordering::SeqCst) != epoch {
+                return Err("Scene changed.".to_string());
+            }
+            let frame = decoder::decode(Path::new(&path))?;
+            if check.load(Ordering::SeqCst) != epoch {
+                return Err("Scene changed.".to_string());
+            }
+            Ok(frame.packet())
+        })
+        .await
+        .map_err(|e| e.to_string())??;
+        transport::send(window, packet, request, Some((current, epoch))).await
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (path, epoch, request, window, state);
+        Err("Shared frames are unavailable on this platform.".into())
+    }
+}
+
+#[tauri::command]
 async fn compute_metrics(
     epoch: u64,
     revision: u64,
@@ -167,6 +218,17 @@ async fn export_html(path: String, state: State<'_, Backend>) -> Result<(), Stri
 
 pub fn run() {
     let builder = tauri::Builder::default()
+        .on_page_load(|view, payload| {
+            if payload.event() == tauri::webview::PageLoadEvent::Started {
+                // Invalidate work started by the previous document before it
+                // can publish into a reloaded page or retain orphan mappings.
+                if let Some(state) = view.try_state::<Backend>() {
+                    state.epoch.fetch_add(1, Ordering::SeqCst);
+                }
+                #[cfg(windows)]
+                transport::reset(view.clone());
+            }
+        })
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(Backend::default());
@@ -177,16 +239,24 @@ pub fn run() {
             import_sources,
             activate_scene,
             load_frame_binary,
+            load_frame_shared,
+            transport::shared_frames_available,
+            transport::release_shared_frame,
             compute_metrics,
             export_html,
             diagnostics::benchmark_prepare,
-            diagnostics::benchmark_transfer
+            diagnostics::benchmark_transfer,
+            diagnostics::benchmark_shared_transfer,
+            diagnostics::benchmark_shared_state
         ]);
     #[cfg(not(feature = "diagnostics"))]
     let builder = builder.invoke_handler(tauri::generate_handler![
         import_sources,
         activate_scene,
         load_frame_binary,
+        load_frame_shared,
+        transport::shared_frames_available,
+        transport::release_shared_frame,
         compute_metrics,
         export_html
     ]);

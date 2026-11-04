@@ -6,7 +6,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 - Updated: 2026-11-04 (Asia/Dhaka).
 - Branch: `feat/desktop-app`.
-- Requirements review approved by the user. Core implementation and development-app verification are complete; release qualification remains in progress.
+- Requirements review approved by the user. Core implementation and Windows transport improvement are complete; final artifact rebuild/verification is in progress. Linux validation is deferred at the user's request.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
 - Confirmed: sparse scenes shared by at least two folders; labeled 8-bit fallback with exact source readout.
 
@@ -16,7 +16,7 @@ This is the current handoff record. Read it before making changes and update it 
 | --- | --- | --- |
 | 0. Requirements and Git | Complete | Both source documents reviewed, decisions recorded, repository initialized. |
 | 1. Foundation | Development and packaged launch verified | Packaged app launches on its own; native file picker imports the user's WEBP pair. Clean-machine prerequisites remain untested. |
-| 2. Renderer and precision proof | Correctness and synthetic decode target verified; IPC target unmet | Exact samples and fallback pass. Four-frame PNG batch: 18.39 ms median / 19.17 ms p95. Raw IPC: 65.90 ms median with debugger detached. Real 240 Hz evidence pending. |
+| 2. Renderer and precision proof | Correctness, synthetic decode and Windows transfer median/p95 targets verified | Exact samples and fallback pass. Four-frame PNG batch: 18.39 ms median / 19.17 ms p95. Windows shared transfer: 4.20 ms median / 4.50 ms p95; 5.30 ms maximum. Real 240 Hz evidence pending. |
 | 3. Comparison workspace | Implemented and smoke-verified | Real folder/file decoding, sparse matching, ambiguity tests and rapid scene changes pass. |
 | 4. Inspection tools | Implemented and smoke-verified | Modes, flicker, readout, eight mixed-depth 4K textures, and emulated 100/125/150/200% scaling pass. Physical mixed-DPI hardware coverage remains. |
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
@@ -32,9 +32,9 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Resume here
 
-The final normal Windows executable has been rebuilt and verified. Core features, sharing, exact source samples, generated 10/12-bit AVIF, expanded PNG formats, stale-work guards, and the synthetic PNG decode target pass. See `docs/RELEASE_VALIDATION.md` for the full evidence and reproducible test commands.
+Windows now uses read-only WebView2 shared frame buffers with an unchanged raw AYRI fallback on other/older runtimes. Transfer median/p95 are below 5 ms; a 5.30 ms maximum remains an observed tail stall. Full source-byte equality, cancellation, release/detachment, bounded idle retention, reload cleanup, and existing native workflows pass. See `docs/RELEASE_VALIDATION.md` for evidence and reproducible commands.
 
-Next engineering work is the raw binary IPC performance shortfall: 65.90 ms median with the debugger detached versus the <5 ms target, measured without decoding or GPU upload. A faster transfer mechanism needs precision, ownership and cross-platform checks. Linux/AppImage, clean-machine prerequisites, physical mixed-DPI and 240 Hz validation need suitable environments. Do not rebuild completed features.
+Next: rebuild and verify the normal packaged Windows artifact after these changes, finish expanded AVIF coverage, and record the final checkpoint. Linux/AppImage is explicitly deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks still require suitable environments.
 
 Current executable: `src-tauri/target/release/ayori-compare.exe`. Development command: `npm run desktop`. Development verification tools used a WebView2 debugging port of 9223. A development app and Vite server may still be running; inspect before starting duplicate instances.
 
@@ -101,9 +101,9 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 
 - Packaged Windows launch, file dialog/import, window controls and lossless clipboard checks pass. Test WebView2 prerequisites on a clean machine.
 - PNG batch target now passes on the generated corpus; broaden representative corpus coverage and record hardware/environment limits.
-- Improve raw IPC: isolated transfer remains 65.90 ms median / 68.40 ms p95, with no debugger attached. 60 Hz pacing passes, but real 240 Hz presentation remains unverified. CPU/GPU sampled peaks are recorded; no numeric total ceiling has been approved.
+- Windows shared transfer now measures 4.20 ms median / 4.50 ms p95 (5.30 ms max). Legacy raw IPC remains 65.90 ms median / 68.40 ms p95 and is retained for other/older runtimes. 60 Hz pacing passes; real 240 Hz presentation remains unverified. CPU/GPU sampled peaks are recorded; no numeric total ceiling has been approved.
 - Physical mixed-monitor scaling and broader AVIF YUV/subsampling coverage remain. Generated identity-matrix 10/12-bit AVIF, palette/low-depth PNG, emulated device scaling, forced GPU fallback and eight mixed-depth/aspect 4K textures now pass.
-- Run the Linux AppImage build and runtime checks on Linux. CI configuration exists but has not run.
+- Linux AppImage build/runtime validation is deferred by the user until they are on Linux. CI configuration exists but has not run.
 - npm reports two low-severity development-only findings from the Svelte Vite plugin's `deepmerge` dependency, with no published fix in the queried audit. Production dependency audit reports none.
 
 ### 2026-11-04 — Packaged import and faster lossless PNG decoding
@@ -137,3 +137,12 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 - Source-selection batch averages measure 0.0004 ms per operation; draw submission p95 0.10 ms. 290 frame intervals at the current 60 Hz mode showed zero stalls over 1.5× median. These do not establish individual-input latency or 240 Hz behavior.
 - Fresh release import/scoring/copy/window-resize workload: sampled peak private memory 600,997,888 bytes, aggregate working sets 692,740,096 bytes, dedicated GPU 218,591,232 bytes, shared GPU 77,869,056 bytes. These are sampled observations, not hard ceilings.
 - Current remaining work: IPC transport improvement; external Linux, clean-machine, physical mixed-DPI and 240 Hz qualification; unresolved low-severity development dependency advisory. All other completed checks and limitations are in the release-validation document.
+
+### 2026-11-04 — Windows shared frame transfer verified
+
+- Replaced the Windows frame data path with WebView2 read-only shared mappings. Original AYRI bytes/typed arrays remain exact; non-Windows and older WebView2 use the existing binary response. Windows dependencies are target-specific and Cargo.lock is tracked.
+- COM work stays on the window thread; a duplicated OS mapping handle moves to a worker for pixel copying. Native mappings are never reused until JavaScript has detached its view and acknowledged release. Four in-flight frame jobs remain bounded; one idle mapping of at most 32 MiB may be retained. Navigation clears mappings and invalidates old work.
+- Detached-debugger benchmark, 14,745,632-byte frame, 5 warmups/50 samples: **4.20 ms median, 4.50 ms p95, 5.30 ms max**. Each payload byte was verified outside the timing interval. The first non-pooled implementation measured 4.90 ms median / 5.50 ms p95. This is a measured median/p95 pass, not a guarantee that every transfer is below 5 ms or an end-to-end zero-copy claim.
+- 15 frontend tests pass, including out-of-order delivery, cancellation/timeout/error release, exact low bits, unsupported-runtime fallback, and renderer cleanup. Native packet comparison matches every byte for 8/16-bit PNG and 10/12-bit AVIF. Native ownership probe received/released 12 mappings, retained zero active/pending mappings after disposal, and retained zero bytes after navigation.
+- Repeated native smoke, real-file workflow, user WEBP pairs, fallback precision, metrics, file hot reload, clipboard, offline HTML, scaling emulation, and eight-slot 4K checks all pass. Final normal packaged artifact still needs rebuilding and verification after this step.
+- Linux validation is deferred per user instruction. The two low-severity development dependency advisories were rechecked: upstream still publishes no fix; production audit remains clean.

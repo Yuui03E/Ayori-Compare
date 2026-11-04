@@ -20,6 +20,8 @@ export interface Frame {
   originalDepth: number;
   fileSize: number;
   pixels: Uint8Array | Uint16Array;
+  /** Releases a native mapping when the owning renderer removes this frame. */
+  release?: () => void;
 }
 export interface Pixel {
   x: number;

@@ -6,6 +6,7 @@ import type { ComparisonMatrix, Frame, Metric, Mode, Pixel, Point } from '../typ
 import { Renderer } from '../webgl/renderer';
 import { parseFrame, readPixel } from '../webgl/packet';
 import { demoFrame, demoMatrix } from '../demo';
+import { loadFramePacket } from '../frame-transport';
 
 export class AyoriWorkspace {
   matrix = $state.raw<ComparisonMatrix | null>(null);
@@ -47,6 +48,7 @@ export class AyoriWorkspace {
   private refreshTimers = new Map<number, ReturnType<typeof setTimeout>>();
   private scoreTimer: ReturnType<typeof setTimeout> | undefined;
   private disposed = false;
+  private loads = new Map<number, AbortController>();
 
   attach(canvas: HTMLCanvasElement) {
     this.disposed = false;
@@ -116,6 +118,8 @@ export class AyoriWorkspace {
   async loadScene(index: number, fit = false) {
     if (!this.matrix || !this.renderer || index < 0 || index >= this.matrix.scenes.length) return;
     const token = ++this.generation;
+    this.loads.forEach((load) => load.abort());
+    this.loads.clear();
     const start = performance.now();
     this.sceneIndex = index;
     this.loading = true;
@@ -170,10 +174,21 @@ export class AyoriWorkspace {
   }
   private async loadSlot(slot: number, path: string, token: number, epoch: number, retry = 0) {
     const revision = ++this.revisions[slot];
+    this.loads.get(slot)?.abort();
+    const controller = new AbortController();
+    this.loads.set(slot, controller);
     try {
-      const bytes = await invoke<ArrayBuffer>('load_frame_binary', { path, epoch });
-      if (token !== this.generation || revision !== this.revisions[slot] || this.disposed) return;
-      this.renderer!.upload(slot, parseFrame(bytes));
+      const lease = await loadFramePacket(path, epoch, controller.signal);
+      let adopted = false;
+      try {
+        if (token !== this.generation || revision !== this.revisions[slot] || this.disposed) return;
+        const frame = parseFrame(lease.buffer);
+        frame.release = lease.release;
+        this.renderer!.upload(slot, frame);
+        adopted = true;
+      } finally {
+        if (!adopted) lease.release();
+      }
       const next = { ...this.errors };
       delete next[slot];
       this.errors = next;
@@ -190,6 +205,8 @@ export class AyoriWorkspace {
       this.errors = { ...this.errors, [slot]: String(error) };
       this.updateFrames();
       this.notify(`Source ${slot + 1}: ${error}`);
+    } finally {
+      if (this.loads.get(slot) === controller) this.loads.delete(slot);
     }
   }
   private updateFrames() {
@@ -372,6 +389,8 @@ export class AyoriWorkspace {
   dispose() {
     this.disposed = true;
     this.generation++;
+    this.loads.forEach((load) => load.abort());
+    this.loads.clear();
     this.metricRevision++;
     this.refreshTimers.forEach(clearTimeout);
     clearTimeout(this.scoreTimer);
