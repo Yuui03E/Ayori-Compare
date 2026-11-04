@@ -67,6 +67,40 @@ afterEach(() => {
 });
 
 describe('asynchronous workspace lifetime', () => {
+  it('ignores metadata errors from an old scene after navigation', async () => {
+    vi.useFakeTimers();
+    const { w } = setup();
+    const paths = Array.from({ length: 9 }, (_, i) => `image${i}`);
+    w.matrix = {
+      sources: paths.map((path) => ({ label: path, origin: path, kind: 'file' })),
+      scenes: [
+        { id: '0', label: '0', frames: paths },
+        { id: '1', label: '1', frames: paths },
+      ],
+      warnings: [],
+    };
+    let rejectOld!: (error: Error) => void;
+    const old = new Promise((_, reject) => {
+      rejectOld = reject;
+    });
+    let probes = 0;
+    invoke.mockImplementation((cmd, args) => {
+      if (cmd === 'activate_scene') return Promise.resolve({ epoch: args.index + 1 });
+      if (cmd === 'scene_dimensions')
+        return ++probes === 2 ? old : Promise.resolve(paths.map(() => [1, 1]));
+      if (cmd === 'load_frame_binary') return Promise.resolve(packet(1));
+      return Promise.resolve();
+    });
+    await w.loadScene(0);
+    w.onFileChanged({ epoch: 1, path: paths[0] });
+    await vi.advanceTimersByTimeAsync(250);
+    await w.loadScene(1);
+    rejectOld(new Error('Scene changed.'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(w.sceneIndex).toBe(1);
+    expect(w.message).toBe('');
+    expect(w.dimensions).toEqual(paths.map(() => [1, 1]));
+  });
   it('browses 100 sources with bounded residency and discards results evicted during selection', async () => {
     const { w, renderer } = setup();
     const paths = Array.from({ length: 100 }, (_, i) => `image${i}`);

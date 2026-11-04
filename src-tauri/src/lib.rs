@@ -80,19 +80,24 @@ async fn activate_scene(
         .ok_or("Scene is unavailable.")?
         .frames
         .clone();
-    let epoch = state.epoch.fetch_add(1, Ordering::SeqCst) + 1;
-    *state.active.lock().map_err(|e| e.to_string())? = paths.clone();
+    let epoch = {
+        let mut active = state.active.lock().map_err(|e| e.to_string())?;
+        let epoch = state.epoch.fetch_add(1, Ordering::SeqCst) + 1;
+        *active = paths.clone();
+        epoch
+    };
     let current = state.epoch.clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
         watcher::watch(paths.into_iter().flatten().collect(), epoch, current, app)
     })
     .await
     .map_err(|e| e.to_string())?;
+    let mut watcher = state.watcher.lock().map_err(|e| e.to_string())?;
     if state.epoch.load(Ordering::SeqCst) != epoch {
         return Err("Scene changed.".into());
     }
     let warning = result.as_ref().err().cloned();
-    *state.watcher.lock().map_err(|e| e.to_string())? = result.ok();
+    *watcher = result.ok();
     Ok(Activated { epoch, warning })
 }
 
@@ -193,6 +198,9 @@ async fn compute_metrics(
     app: tauri::AppHandle,
     state: State<'_, Backend>,
 ) -> Result<(), String> {
+    if state.epoch.load(Ordering::SeqCst) != epoch {
+        return Ok(());
+    }
     let paths = state.active.lock().map_err(|e| e.to_string())?.clone();
     state.metric_revision.store(revision, Ordering::SeqCst);
     let latest = state.metric_revision.clone();

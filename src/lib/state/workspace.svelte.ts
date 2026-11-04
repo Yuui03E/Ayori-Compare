@@ -193,12 +193,17 @@ export class AyoriWorkspace {
   }
   private async inspectDimensions(token: number) {
     const revision = ++this.dimensionRevision;
-    const sizes = await invoke<([number, number] | null)[]>('scene_dimensions', {
-      epoch: this.epoch,
-    });
-    if (token !== this.generation || revision !== this.dimensionRevision || this.disposed) return;
-    this.dimensions = sizes;
-    this.applyDimensions();
+    try {
+      const sizes = await invoke<([number, number] | null)[]>('scene_dimensions', {
+        epoch: this.epoch,
+      });
+      if (token !== this.generation || revision !== this.dimensionRevision || this.disposed) return;
+      this.dimensions = sizes;
+      this.applyDimensions();
+    } catch (error) {
+      if (token === this.generation && revision === this.dimensionRevision && !this.disposed)
+        throw error;
+    }
   }
   private applyDimensions() {
     if (!this.dimensions.length) return;
