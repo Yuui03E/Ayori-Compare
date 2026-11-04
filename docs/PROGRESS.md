@@ -315,3 +315,11 @@ No further implementation task from the current request remains. Linux/AppImage 
 - The user authorized publishing the codebase to `Yuui03E/Ayori-Compare` and a portable or setup build to Releases. The destination is an empty public repository, and the authenticated account has push access. Selected a single Windows x64 portable `Ayori.exe`, matching the existing version **0.1.0**.
 - Reverified the preserved 8,501,248-byte executable against SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. Application code and native icons have not changed since its packaged validation. Added the public download/release links and Windows/WebView2 instructions to the README.
 - Next: push `main`, tag `v0.1.0`, publish the release asset and verify the public download. No new build or remote CI result is claimed by this preparation step.
+
+### 2026-11-04 — GitHub codebase and Windows portable release published
+
+- Published the codebase and documentation to [Yuui03E/Ayori-Compare](https://github.com/Yuui03E/Ayori-Compare). Local `main` tracks `origin/main`. The annotated `v0.1.0` tag resolves to release commit `565278a817ed9e0be1b131e2392e97137647b30a`; no existing remote history was replaced.
+- Published [Ayori v0.1.0 — Windows portable](https://github.com/Yuui03E/Ayori-Compare/releases/tag/v0.1.0) with exactly one uploaded asset, `Ayori.exe`, alongside release notes, prerequisites and its SHA-256 checksum. GitHub provides its usual source archives separately.
+- Verified the anonymous public download through the README's latest-release link: **8,501,248 bytes**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`, identical to the previously validated local executable. Verified the public README, remote main commit and tag target. Private frames, local tools and generated caches were not uploaded.
+- GitHub Actions started for the branch/tag pushes and were still running at this checkpoint; no remote CI pass is claimed. The release uses the already validated Windows build, and this publication changed only documentation. This final publication record is a documentation-only follow-up to the release tag.
+- Requested upload and portable release delivery are complete. Video work and previously documented external platform/hardware qualification remain future work.
