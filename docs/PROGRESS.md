@@ -34,7 +34,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 Windows now uses read-only WebView2 shared frame buffers with an unchanged raw AYRI fallback on other/older runtimes. Transfer median/p95 are below 5 ms; a 5.30 ms maximum remains an observed tail stall. Full source-byte equality, cancellation, release/detachment, bounded idle retention, reload cleanup, and existing native workflows pass. See `docs/RELEASE_VALIDATION.md` for evidence and reproducible commands.
 
-Next: rebuild and verify the normal packaged Windows artifact after these changes, finish expanded AVIF coverage, and record the final checkpoint. Linux/AppImage is explicitly deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks still require suitable environments.
+Next: rebuild and verify the normal packaged Windows artifact after these changes and record the final checkpoint. Broader AVIF and representative PNG corpus checks are complete. Linux/AppImage is explicitly deferred until the user is on Linux. Clean-machine prerequisites, physical mixed-DPI and 240 Hz checks still require suitable environments.
 
 Current executable: `src-tauri/target/release/ayori-compare.exe`. Development command: `npm run desktop`. Development verification tools used a WebView2 debugging port of 9223. A development app and Vite server may still be running; inspect before starting duplicate instances.
 
@@ -100,9 +100,9 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 ## Outstanding acceptance work
 
 - Packaged Windows launch, file dialog/import, window controls and lossless clipboard checks pass. Test WebView2 prerequisites on a clean machine.
-- PNG batch target now passes on the generated corpus; broaden representative corpus coverage and record hardware/environment limits.
+- PNG batch target passes on generated patterns, four PNGs derived from the user's frames, and deterministic noise. Warm-cache/environment limitations are recorded.
 - Windows shared transfer now measures 4.20 ms median / 4.50 ms p95 (5.30 ms max). Legacy raw IPC remains 65.90 ms median / 68.40 ms p95 and is retained for other/older runtimes. 60 Hz pacing passes; real 240 Hz presentation remains unverified. CPU/GPU sampled peaks are recorded; no numeric total ceiling has been approved.
-- Physical mixed-monitor scaling and broader AVIF YUV/subsampling coverage remain. Generated identity-matrix 10/12-bit AVIF, palette/low-depth PNG, emulated device scaling, forced GPU fallback and eight mixed-depth/aspect 4K textures now pass.
+- Physical mixed-monitor scaling remains. AVIF 8/10/12-bit 420/422/444 full/limited-range SDR coverage, identity-matrix exact samples, palette/low-depth PNG, emulated device scaling, forced GPU fallback and eight mixed-depth/aspect 4K textures pass.
 - Linux AppImage build/runtime validation is deferred by the user until they are on Linux. CI configuration exists but has not run.
 - npm reports two low-severity development-only findings from the Svelte Vite plugin's `deepmerge` dependency, with no published fix in the queried audit. Production dependency audit reports none.
 
@@ -146,3 +146,11 @@ Current executable: `src-tauri/target/release/ayori-compare.exe`. Development co
 - 15 frontend tests pass, including out-of-order delivery, cancellation/timeout/error release, exact low bits, unsupported-runtime fallback, and renderer cleanup. Native packet comparison matches every byte for 8/16-bit PNG and 10/12-bit AVIF. Native ownership probe received/released 12 mappings, retained zero active/pending mappings after disposal, and retained zero bytes after navigation.
 - Repeated native smoke, real-file workflow, user WEBP pairs, fallback precision, metrics, file hot reload, clipboard, offline HTML, scaling emulation, and eight-slot 4K checks all pass. Final normal packaged artifact still needs rebuilding and verification after this step.
 - Linux validation is deferred per user instruction. The two low-severity development dependency advisories were rechecked: upstream still publishes no fix; production audit remains clean.
+
+### 2026-11-04 — Broader decoder qualification completed
+
+- Added 18 original 32×16 AVIF fixtures covering 8/10/12-bit, 4:2:0 / 4:2:2 / 4:4:4 and full/limited range (9,707 bytes total). A reproducible generator constructs known YUV planes and encodes with libavif/AOM. Tests compare against Rec.709 equations at constant-chroma stripe interiors, allowing two encoded-depth steps for converter rounding. Exact source-bit tests remain separate and strict.
+- All four AVIF worker tests pass, including the new test across all 18 combinations; total Rust coverage is now 19 tests. No user images or downloaded tools are tracked.
+- Added an ignored benchmark corpus generator. Four user WEB-DL frames were copied, resized to 2560×1440 and saved as RGBA8 PNGs solely for the benchmark. Originals are unchanged. Warm four-thread read+decode: **30.44 ms median / 31.38 ms p95 / 31.89 ms max**, passing <35 ms in this run. Compressed sizes range from 3.82 to 4.48 MB.
+- Four high-entropy RGBA8 PNGs (14,748,233 bytes each) measured **8.96 ms median / 10.18 ms p95 / 10.34 ms max**. Incompressible data uses inexpensive stored deflate blocks, so file size alone does not predict decode cost. Resident real-image decode separately measured 29.20 ms median / 41.10 ms p95, showing background timing variation; no universal/cold-cache performance claim is made.
+- Next: final normal Windows build, packaged workflow/clipboard verification, visual inspection, and final release record.

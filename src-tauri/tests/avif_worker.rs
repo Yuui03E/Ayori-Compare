@@ -90,3 +90,80 @@ fn high_depth_identity_avif_retains_every_encoded_sample() {
         }
     }
 }
+
+#[test]
+fn rec709_yuv_subsampling_range_and_depth_match_known_planes() {
+    for depth in [8u32, 10, 12] {
+        for format in [420, 422, 444] {
+            for limited in [false, true] {
+                let range = if limited { "limited" } else { "full" };
+                let filename = format!("yuv{format}-{depth}-{range}.avif");
+                let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("tests/fixtures")
+                    .join(&filename);
+                let output = worker(&path);
+                assert!(
+                    output.status.success(),
+                    "{filename}: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                );
+                let bytes = output.stdout;
+                let field = |i| u32::from_le_bytes(bytes[i..i + 4].try_into().unwrap());
+                let payload = if depth == 8 { 8 } else { 16 };
+                assert_eq!(
+                    (field(4), field(8), field(12), field(24)),
+                    (32, 16, payload, depth)
+                );
+                assert_eq!(bytes.len(), 32 + 32 * 16 * 4 * (payload / 8) as usize);
+                let max = ((1u32 << depth) - 1) as f64;
+                let scale = (1u32 << (depth - 8)) as f64;
+                let output_max = if depth == 8 { 255. } else { 65535. };
+                // Different conforming fixed-point YUV converters can round at
+                // encoded depth before expansion. Allow two encoded RGB steps.
+                let tolerance = 2. * output_max / max;
+                for y in 0..16usize {
+                    let y_code = if limited {
+                        16. * scale + (y as f64 * 219. * scale / 15.).round()
+                    } else {
+                        (y as f64 * max / 15.).round()
+                    };
+                    let luma = if limited {
+                        (y_code - 16. * scale) / (219. * scale)
+                    } else {
+                        y_code / max
+                    };
+                    for x in 0..32usize {
+                        // Stay inside constant-chroma stripes so chroma-filter
+                        // choice at a subsampled boundary cannot change the oracle.
+                        if !(2..=5).contains(&(x % 8)) {
+                            continue;
+                        }
+                        let block = x / 8;
+                        let chroma_divisor = if limited { 224. * scale } else { max };
+                        let cb = ([128., 96., 160., 128.][block] - 128.) * scale / chroma_divisor;
+                        let cr = ([128., 128., 128., 160.][block] - 128.) * scale / chroma_divisor;
+                        let expected = [
+                            luma + 1.5748 * cr,
+                            luma - 0.1873242729306488 * cb - 0.4681242729306488 * cr,
+                            luma + 1.8556 * cb,
+                            1.,
+                        ];
+                        for (channel, expected) in expected.iter().enumerate() {
+                            let offset = 32 + ((y * 32 + x) * 4 + channel) * (payload / 8) as usize;
+                            let sample = if payload == 8 {
+                                u16::from(bytes[offset])
+                            } else {
+                                u16::from_le_bytes([bytes[offset], bytes[offset + 1]])
+                            };
+                            let expected = expected.clamp(0., 1.) * output_max;
+                            assert!(
+                                (f64::from(sample) - expected).abs() <= tolerance,
+                                "{filename}: {x},{y} channel {channel}: {sample} vs {expected} (tolerance {tolerance})"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
