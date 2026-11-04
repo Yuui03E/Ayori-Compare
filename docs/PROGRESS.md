@@ -270,3 +270,11 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Added `scripts/generate-icons.mjs` to derive a black rounded app tile from the master and regenerate the existing native icon set through Tauri. ICO/PNG/ICNS and platform variants are tracked assets. Visually inspected the generated 128px icon; approved shapes and colors are retained.
 - All **37 frontend tests pass**; production frontend and offline builds pass with zero Svelte diagnostics. Native packaging is underway. The source changes are implemented, but final executable resources, actual packaged UI and offline branding still require verification.
 - Next: verify packaged title bar/Home, all compact heights, embedded Windows icon resources and offline export; record final executable and release evidence.
+
+### 2026-11-04 — Facet identity Windows release delivered
+
+- Final normal Windows executable: **8,501,248 bytes (8.50 MB)**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. Build passes with zero Svelte diagnostics; all **37 frontend tests** pass. All six approved ICO image payloads (16/24/32/48/64/256px) are present byte-for-byte in the executable resources.
+- Visually reviewed actual packaged Home and real comparison screenshots: the selected Facet mark appears in the title bar and existing Home preview badge. Native 128px icon also reviewed. The app font and compact layout are preserved; the pre-existing minimal mode hides the decorative logo below 24px.
+- Packaged appearance checks pass all four bar heights at 960×600, with 22 controls and no overflow; saved settings, Home/resume and app shortcuts pass. Packaged real two-source/four-scene WEBP import, shared buffers, maximize/restore, copying and production-only checks pass with zero frontend errors.
+- Fresh offline export displays the embedded Facet mark and SVG favicon without HTTP requests or frontend errors. Source artwork and deterministic native-icon generation are documented in `design/BRANDING.md`; no new dependency or lockfile change was needed.
+- The selected logo is applied and Windows delivery is complete. Comparison behavior and existing external Linux/clean-machine/mixed-monitor/240 Hz qualifications are unchanged.

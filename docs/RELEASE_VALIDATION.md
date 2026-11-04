@@ -2,7 +2,16 @@
 
 These measurements describe this machine and these workloads. Unmet targets remain release qualification work.
 
-## Current Windows delivery — configurable double-right-click zoom
+## Current Windows delivery — approved Facet identity
+
+- Normal executable: **8,501,248 bytes** (8.50 MB decimal), SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. Built with `npm run desktop:build`; zero Svelte diagnostics, **37 frontend tests pass**. Rust decoder/metric/transport logic and both lockfiles are unchanged.
+- The user chose A / Facet. The master SVG supplies the title bar, existing Home badge, browser favicon and inline offline branding. All native icon assets were regenerated from that artwork. Each of the six ICO payloads (**16, 24, 32, 48, 64 and 256px**) was found byte-for-byte in the final executable's resources.
+- Final packaged Home and real-frame comparison screenshots were visually reviewed, including the title bar and central Home badge. Image resources load successfully. The 128px native icon was also visually reviewed. Existing minimal-mode behavior hides the decorative bar mark below 24px.
+- `verify-appearance.mjs` passes at 16/24/32/44px with 22 visible controls, no overlap/overflow at 960×600, saved settings, Home/resume image preservation and app-key behavior. `verify-release.mjs` passes real two-source/four-scene WEBP imports, shared-buffer ownership, clipboard copying, maximize/restore and production-only checks, with no frontend errors.
+- An HTML comparison freshly exported by this executable displays the same logo and SVG favicon with zero network requests and no frontend errors. Its actual rendered layout was reviewed. Logo resources are embedded rather than referencing source-machine files.
+- Branding is the only feature change in this delivery. The earlier quick-zoom, precision, large-collection and performance qualification below remains applicable; external platform/hardware qualifications are unchanged.
+
+## Previous Windows delivery — configurable double-right-click zoom
 
 - Normal executable: **8,494,592 bytes** (8.49 MB decimal), SHA-256 `789522cc0e8173501f48ad47ff552aa9c2d232155e0052de4cdbff632b6071db`. `npm run desktop:build` passes with zero Svelte errors/warnings; diagnostics commands and development workspace hooks are absent.
 - **37 frontend tests pass**. The gesture tests cover click timing/distance, four clicks producing two toggles, no transient loupe, hold/drag, cancellation/button chords, disabled behavior and target validation. Coordinate tests cover exact anchored zoom/pan restoration at four DPI scales and invalidation after scene/layout/manual-view changes. Rust decoding, metrics and transport logic and both lockfiles are unchanged.

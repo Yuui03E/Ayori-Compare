@@ -1,6 +1,10 @@
 # Ayori
 
+![Ayori Facet icon](src-tauri/icons/128x128.png)
+
 A Windows-first desktop image comparison tool for anime encoders. Built with Tauri 2, Rust, Svelte 5, and WebGL2.
+
+Ayori uses the approved **Facet** identity across its interface, native app icons and offline comparisons. [Brand artwork and regeneration](design/BRANDING.md).
 
 Open individual images to compare alternatives of one frame, or one folder per release/encoding group to match scenes by filename or frame number. Collections can contain 100+ images or sources; selected and nearby images load as you browse. Click either source name or **Search** (`Ctrl+K`) to assign A/B, and **+ → Add sources** to extend a comparison.
 
