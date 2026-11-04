@@ -13,6 +13,10 @@ A pure-black top bar keeps A/B, inspection modes, scenes and zoom close at hand.
 - [Original product requirements](docs/product_requirements_document_prd.md)
 - [Release checks, benchmarks, and remaining qualification](docs/RELEASE_VALIDATION.md)
 
+Double right click the image to jump to **200%** at the pointer; repeat to restore your previous zoom and pan. Choose any target from **1–12800%**, or disable the gesture, in **Help → Interface**. Right hold or drag still opens the dual loupe. Offline exports include the same gesture with a session-specific target.
+
+Mixed resolutions fill a shared area using the largest scene width and height: 720p and 1080p both occupy a 1920×1080 area at 100%. Auto uses nearest sampling at 100% and above, and smooth filtering below; Bilinear is available in View options. Originals and exact source readout stay unchanged. Different aspect ratios stretch to fit, so match framing/crop before judging quality. Display scaling is not bicubic; SSIMULACRA2 separately resizes source 1 to each candidate using Catmull–Rom.
+
 ## Development
 
 Requires Node.js 22.12+ (or a compatible newer release), Rust 1.98+, NASM 2.14+, Windows C++ Build Tools and WebView2. On Linux, install NASM and Tauri's WebKitGTK 4.1 development prerequisites. Rust 1.98 is required by the native AVIF decoder; the application uses edition 2024.

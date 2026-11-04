@@ -113,6 +113,7 @@ describe('shared frame ownership', () => {
     const renderer = Object.create(Renderer.prototype) as Renderer;
     Object.assign(renderer, {
       gl: { deleteTexture: vi.fn() },
+      base: { width: 1, height: 1 },
       textures: Array(8).fill(null),
       frames: Array.from({ length: 8 }, () => ({ ...parseFrame(packet16()), release })),
       fallback: Array(8).fill(false),

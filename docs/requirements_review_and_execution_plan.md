@@ -185,3 +185,7 @@ The user approved the typography and general styling, then requested less empty 
 ## Subsequent user decision — adjustable pure-black bar, Home and window keys
 
 The user requested a configurable 16–44px top bar, pure-black styling, the visible name **Ayori**, Q to close, shortcuts for minimizing/maximizing and a way to return Home. Implementation uses a 32px default with saved integer height and presets, preserves a resumable comparison on Home, and exposes four editable app commands without overwhelming the essential comparison list. Existing saved shortcuts must migrate without key theft or resets. Retain comparison precision and explicit missing/alpha information while simplifying secondary labels at the smallest sizes.
+
+## Subsequent user decision — reversible right-click zoom
+
+The user requested an explanation of mixed-resolution comparison and a double-right-click zoom gesture with a user-chosen target and a second double click restoring the previous view. Default to 200%, preserve click anchoring and prior pan, retain held/dragged loupe, expose a saved target and enable switch, and include the gesture in offline exports. Existing normalized alignment and preview/metric resampling algorithms remain unchanged; document their actual behavior.

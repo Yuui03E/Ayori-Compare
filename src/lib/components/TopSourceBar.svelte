@@ -167,7 +167,7 @@
     <button
       class="zoom mono"
       aria-label="Toggle fit and 100%"
-      data-tip={`${Math.round(w.zoom * 100)}% · ${p.hint('toggleZoom')}`}
+      data-tip={`${Math.round(w.zoom * 100)}% · ${p.hint('toggleZoom')}${p.doubleRightZoom ? '\nDouble right click: ' + p.quickZoomPercent + '% / previous view' : ''}`}
       onclick={() => w.toggleZoom()}>{Math.round(w.zoom * 100)}%</button
     >
     <button

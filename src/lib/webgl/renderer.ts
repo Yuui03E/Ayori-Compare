@@ -33,6 +33,7 @@ export class Renderer {
   private observer: ResizeObserver;
   private pending = 0;
   private fitLocked = true;
+  private quickZoomReturn: { zoom: number; pan: Point; fitLocked: boolean } | null = null;
   private disposed = false;
   private sceneSize: { width: number; height: number } | null = null;
   onChange: () => void = () => {};
@@ -145,6 +146,7 @@ export class Renderer {
     const width = Math.max(1, Math.round(rect.width * dpr)),
       height = Math.max(1, Math.round(rect.height * dpr));
     if (this.canvas.width !== width || this.canvas.height !== height) {
+      this.quickZoomReturn = null;
       this.canvas.width = width;
       this.canvas.height = height;
       if (this.fitLocked) this.fit();
@@ -224,6 +226,7 @@ export class Renderer {
     this.invalidate();
   }
   clear() {
+    this.quickZoomReturn = null;
     this.sceneSize = null;
     for (let i = 0; i < this.frames.length; i++) this.remove(i);
     this.frames.length = this.textures.length = this.fallback.length = 8;
@@ -234,12 +237,16 @@ export class Renderer {
     this.invalidate();
   }
   private updateBase() {
+    const previous = this.base;
     this.base = this.sceneSize ?? {
       width: this.frames.reduce((max, f) => Math.max(max, f?.width ?? 0), 1),
       height: this.frames.reduce((max, f) => Math.max(max, f?.height ?? 0), 1),
     };
+    if (previous.width !== this.base.width || previous.height !== this.base.height)
+      this.quickZoomReturn = null;
   }
   fit() {
+    this.quickZoomReturn = null;
     const next = fitView(
       this.canvas.width,
       this.canvas.height,
@@ -254,6 +261,27 @@ export class Renderer {
     this.invalidate();
   }
   zoomTo(zoom: number, cursor?: Point) {
+    this.quickZoomReturn = null;
+    this.applyZoom(zoom, cursor);
+  }
+  toggleQuickZoom(zoom: number, cursor: Point) {
+    if (this.quickZoomReturn) {
+      const previous = this.quickZoomReturn;
+      this.quickZoomReturn = null;
+      this.view.zoom = previous.zoom;
+      this.view.pan = { ...previous.pan };
+      this.fitLocked = previous.fitLocked;
+      this.invalidate();
+    } else {
+      this.quickZoomReturn = {
+        zoom: this.view.zoom,
+        pan: { ...this.view.pan },
+        fitLocked: this.fitLocked,
+      };
+      this.applyZoom(zoom, cursor);
+    }
+  }
+  private applyZoom(zoom: number, cursor?: Point) {
     const center = cursor ?? {
       x: (this.view.mode === 2 ? this.canvas.width / 2 : this.canvas.width) / 2,
       y: this.canvas.height / 2,
@@ -273,6 +301,7 @@ export class Renderer {
   setMode(mode: ViewState['mode'], subMode: number) {
     const wasSplit = this.view.mode === 2;
     if (wasSplit !== (mode === 2)) {
+      this.quickZoomReturn = null;
       const oldWidth = this.canvas.width / (wasSplit ? 2 : 1),
         nextWidth = this.canvas.width / (mode === 2 ? 2 : 1);
       this.view.pan = { x: this.view.pan.x + (nextWidth - oldWidth) / 2, y: this.view.pan.y };

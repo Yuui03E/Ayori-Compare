@@ -15,6 +15,7 @@
   import { runCommand } from './lib/commands';
   import { workspace as w } from './lib/state/workspace.svelte';
   import type { Metric, Point } from './lib/types';
+  import { RightButtonGesture } from './lib/right-button-gesture';
   let canvas: HTMLCanvasElement;
   let rendererError = $state('');
   let lastActivity = performance.now(),
@@ -23,8 +24,28 @@
   let pan: Point | null = null;
   let loupeKey = '';
   let rightHeld = false;
+  const rightGesture = new RightButtonGesture({
+    enabled: () => p.doubleRightZoom,
+    hold: (active) => {
+      rightHeld = active;
+      w.loupe(active || !!loupeKey);
+    },
+    doubleClick: (point) => {
+      if (!w.comparing || w.help || w.sourceBrowser || !w.renderer) return;
+      w.renderer.toggleQuickZoom(
+        p.quickZoomPercent / 100,
+        w.renderer.point({ clientX: point.x, clientY: point.y }),
+      );
+      w.updatePixel();
+    },
+  });
   $effect(() => {
-    if (!w.comparing) blur();
+    if (!w.comparing || w.help || w.sourceBrowser) blur();
+  });
+  $effect(() => {
+    // A click begun on another scene, mode or preference cannot finish a double click here.
+    void [w.matrix, w.sceneIndex, w.mode, w.subMode, p.doubleRightZoom, p.quickZoomPercent];
+    rightGesture.forgetClicks();
   });
   function activity(event?: PointerEvent) {
     lastActivity = performance.now();
@@ -36,6 +57,7 @@
     activity();
     if (w.help || w.sourceBrowser) return;
     if (event.key === 'Escape') {
+      rightGesture.cancel();
       w.hudLocked = false;
       w.hudHidden = false;
       w.drawer = false;
@@ -55,6 +77,7 @@
     if (!action || (!w.comparing && !action.global)) return;
     event.preventDefault();
     if (event.repeat && !action.repeat) return;
+    rightGesture.forgetClicks();
     if (action.id === 'loupe') {
       loupeKey = event.code;
       w.loupe(true);
@@ -71,6 +94,7 @@
     }
   }
   function blur() {
+    rightGesture.cancel();
     altHeld = false;
     pan = null;
     loupeKey = '';
@@ -91,11 +115,12 @@
       canvas.focus({ preventScroll: true });
       w.move(e);
       if (e.button === 2) {
-        rightHeld = true;
-        w.loupe(true);
+        e.preventDefault();
+        rightGesture.down({ x: e.clientX, y: e.clientY });
         canvas.setPointerCapture(e.pointerId);
         return;
       }
+      rightGesture.cancel();
       if (e.button === 1 || (e.button === 0 && (w.mode !== 1 || e.ctrlKey))) {
         pan = w.renderer!.point(e);
         canvas.setPointerCapture(e.pointerId);
@@ -104,6 +129,7 @@
     };
     const move = (e: PointerEvent) => {
       if (!w.comparing) return;
+      rightGesture.move({ x: e.clientX, y: e.clientY }, e.buttons);
       if (pan) {
         const next = w.renderer!.point(e);
         w.renderer!.panBy({ x: next.x - pan.x, y: next.y - pan.y });
@@ -113,20 +139,27 @@
     };
     const up = (e: PointerEvent) => {
       pan = null;
-      if (e.button === 2 || e.type === 'pointercancel') {
-        rightHeld = false;
-        w.loupe(!!loupeKey);
-      }
+      if (e.type === 'pointercancel') rightGesture.cancel();
+      else if (e.button === 2) rightGesture.up({ x: e.clientX, y: e.clientY });
       if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
     };
     const wheel = (e: WheelEvent) => {
       if (!w.comparing) return;
+      rightGesture.forgetClicks();
       e.preventDefault();
       activity();
       w.renderer!.zoomTo(w.zoom * (e.deltaY < 0 ? 1.25 : 0.8), w.renderer!.point(e));
       w.updatePixel();
     };
     const context = (e: Event) => e.preventDefault();
+    const lostCapture = () => {
+      if (rightGesture.pressed) rightGesture.cancel();
+    };
+    const outsideDown = (e: PointerEvent) => {
+      if (e.target !== canvas) rightGesture.cancel();
+    };
+    document.addEventListener('pointerdown', outsideDown, true);
+    canvas.addEventListener('lostpointercapture', lostCapture);
     canvas.addEventListener('pointerdown', down);
     canvas.addEventListener('pointermove', move);
     canvas.addEventListener('pointerup', up);
@@ -182,6 +215,9 @@
       canvas.removeEventListener('pointercancel', up);
       canvas.removeEventListener('wheel', wheel);
       canvas.removeEventListener('contextmenu', context);
+      document.removeEventListener('pointerdown', outsideDown, true);
+      canvas.removeEventListener('lostpointercapture', lostCapture);
+      rightGesture.cancel();
       w.dispose();
     };
   });

@@ -272,6 +272,12 @@
               'your loupe key'} for a dual loupe.
           </p>
           <p>
+            Double right click to jump to your chosen zoom (currently {p.quickZoomPercent}%),
+            centered on the clicked point. Double right click again to restore the previous zoom and
+            pan, even after panning around. Change the target or disable the gesture in Interface. A
+            right hold opens the loupe after a brief pause; a right drag opens it immediately.
+          </p>
+          <p>
             The percentage toggles fit / 100%. View options contains zoom presets, filtering and
             effect strength. Repeat a mode button to cycle its views; four quadrants shows sources
             1–4.
@@ -305,6 +311,22 @@
             resolutions share a normalized canvas; 100% follows the largest scene dimensions. Use
             equal-size frames to judge native-pixel detail. Different masters, DVD and WEB sources
             may have legitimate color, crop and grain differences.
+          </p>
+        </section>
+        <section>
+          <h3>Different resolutions & filtering</h3>
+          <p>
+            Each original image is displayed across the same area, using the largest scene width and
+            height. For example, 1280 × 720 and 1920 × 1080 both fill a 1920 × 1080 comparison area
+            at 100%. Different aspect ratios are stretched to that area too; match the crop and
+            aspect ratio first.
+          </p>
+          <p>
+            <b>Auto</b> uses nearest sampling at 100% and above, and smooth filtering below 100%.
+            <b>Nearest</b>
+            keeps hard pixel edges; <b>Bilinear</b> blends neighbors, with mipmaps for shrinking. This
+            changes the preview only, not the original decoded pixels. The display does not use bicubic
+            scaling. SSIMULACRA2 separately resizes source 1 to each candidate with Catmull–Rom.
           </p>
         </section>
         <section>
@@ -386,6 +408,44 @@
         <p>
           Changes apply immediately and stay on this device. Hover help and menus remain readable at
           every size.
+        </p>
+      </div>
+      <div class="zoom-setting">
+        <label class="zoom-enabled"
+          ><strong>Double-right-click zoom</strong><input
+            type="checkbox"
+            aria-label="Enable double-right-click zoom"
+            checked={p.doubleRightZoom}
+            onchange={(e) => {
+              p.doubleRightZoom = e.currentTarget.checked;
+              p.save();
+            }}
+          /></label
+        >
+        <label class="zoom-target" for="quick-zoom"
+          >Target zoom <span
+            ><input
+              id="quick-zoom"
+              aria-label="Double-right-click target zoom"
+              type="number"
+              min="1"
+              max="12800"
+              step="1"
+              value={p.quickZoomPercent}
+              onchange={(e) => p.setQuickZoom(+e.currentTarget.value || 200)}
+            /> %</span
+          ></label
+        >
+        <div class="height-presets">
+          {#each [100, 200, 400, 800] as zoom}<button
+              class:chosen={p.quickZoomPercent === zoom}
+              aria-pressed={p.quickZoomPercent === zoom}
+              onclick={() => p.setQuickZoom(zoom)}>{zoom}%</button
+            >{/each}
+        </div>
+        <p>
+          Zoom at the clicked point; repeat to restore the previous zoom and pan. Fit, manual zoom,
+          scene changes or a resized view start a new toggle. Right hold still opens the dual loupe.
         </p>
       </div>
       <label class="preference"
@@ -517,6 +577,47 @@
       9px Consolas,
       monospace;
     color: #c6e1d7;
+  }
+  .zoom-setting {
+    padding: 16px 0;
+    border-bottom: 1px solid #ffffff14;
+  }
+  .zoom-enabled,
+  .zoom-target {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+  }
+  .zoom-enabled strong {
+    font-weight: 500;
+  }
+  .zoom-enabled input {
+    width: 16px;
+    height: 16px;
+    accent-color: #b7ddd1;
+  }
+  .zoom-target {
+    margin: 12px 0;
+    color: #a3b6aa;
+  }
+  .zoom-target input {
+    width: 80px;
+    border: 1px solid #ffffff20;
+    border-radius: 4px;
+    padding: 5px 7px;
+    background: #0a0a0a;
+    color: #c5e0d1;
+    font:
+      11px Consolas,
+      monospace;
+  }
+  .zoom-setting p {
+    font-size: 11px;
+    line-height: 1.5;
+    color: #8fa39c;
+    margin: 10px 0 0;
   }
   .height-setting {
     padding: 17px 0;

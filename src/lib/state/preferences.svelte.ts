@@ -8,6 +8,7 @@ import {
   validateChord,
   type Bindings,
 } from '../shortcuts';
+import { normalizeQuickZoom } from '../right-button-gesture';
 const KEY = 'ayori.shortcuts.v1';
 const UI_KEY = 'ayori.interface.v1';
 export const normalizeBarHeight = (value: unknown) =>
@@ -19,6 +20,8 @@ class Preferences {
   autoHide = $state(true);
   tooltips = $state(true);
   barHeight = $state(32);
+  doubleRightZoom = $state(true);
+  quickZoomPercent = $state(200);
   error = $state('');
   constructor() {
     try {
@@ -27,6 +30,8 @@ class Preferences {
       this.autoHide = ui.autoHide !== false;
       this.tooltips = ui.tooltips !== false;
       this.barHeight = normalizeBarHeight(ui.barHeight);
+      this.doubleRightZoom = ui.doubleRightZoom !== false;
+      this.quickZoomPercent = normalizeQuickZoom(ui.quickZoomPercent);
     } catch {
       /* Storage may be unavailable; defaults still work. */
     }
@@ -61,6 +66,10 @@ class Preferences {
     this.barHeight = normalizeBarHeight(value);
     this.save();
   }
+  setQuickZoom(value: number) {
+    this.quickZoomPercent = normalizeQuickZoom(value);
+    this.save();
+  }
   reset(id?: string) {
     if (!id) this.bindings = defaultBindings();
     else {
@@ -81,6 +90,8 @@ class Preferences {
           autoHide: this.autoHide,
           tooltips: this.tooltips,
           barHeight: this.barHeight,
+          doubleRightZoom: this.doubleRightZoom,
+          quickZoomPercent: this.quickZoomPercent,
         }),
       );
       this.error = '';

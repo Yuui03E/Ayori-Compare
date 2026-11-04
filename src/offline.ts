@@ -2,6 +2,7 @@ import { Renderer } from './lib/webgl/renderer';
 import { parseFrame, readPixel } from './lib/webgl/packet';
 import type { Mode, Point } from './lib/types';
 import { residentSlots } from './lib/residency';
+import { RightButtonGesture, normalizeQuickZoom } from './lib/right-button-gesture';
 
 type Manifest = {
   sources: { label: string }[];
@@ -33,6 +34,35 @@ try {
   throw error;
 }
 const v = renderer.view;
+canvas.tabIndex = 0;
+renderer.onChange = updatePixels;
+const quickZoomInput = document.querySelector<HTMLInputElement>('#quick-zoom')!;
+let rightHeld = false,
+  shiftHeld = false;
+const rightGesture = new RightButtonGesture({
+  enabled: () => true,
+  hold: (active) => {
+    rightHeld = active;
+    v.loupe = active || shiftHeld;
+    renderer.invalidate();
+  },
+  doubleClick: (point) =>
+    renderer.toggleQuickZoom(
+      normalizeQuickZoom(+quickZoomInput.value) / 100,
+      renderer.point({ clientX: point.x, clientY: point.y }),
+    ),
+});
+quickZoomInput.onchange = () => {
+  quickZoomInput.value = String(normalizeQuickZoom(+quickZoomInput.value || 200));
+  rightGesture.forgetClicks();
+};
+document.addEventListener(
+  'pointerdown',
+  (e) => {
+    if (e.target !== canvas) rightGesture.cancel();
+  },
+  true,
+);
 renderer.onError = fail;
 const picker = document.createElement('div');
 picker.className = 'source-picker';
@@ -111,6 +141,7 @@ function select(slot: number, secondary = false) {
   void syncFrames();
 }
 async function load(index: number) {
+  rightGesture.forgetClicks();
   const token = ++generation;
   scene = (index + manifest.scenes.length) % manifest.scenes.length;
   sceneSelect.value = String(scene);
@@ -188,6 +219,7 @@ async function syncFrames() {
 }
 function mode(next: Mode) {
   const sub = v.mode === next ? (v.subMode + 1) % [1, 3, 1, 2, 4][next] : 0;
+  rightGesture.forgetClicks();
   renderer.setMode(next, sub);
   void syncFrames();
   document
@@ -217,14 +249,20 @@ document.querySelector<HTMLInputElement>('#bands')!.oninput = (e) => {
 };
 canvas.oncontextmenu = (e) => e.preventDefault();
 canvas.onpointerdown = (e) => {
+  canvas.focus({ preventScroll: true });
   canvas.setPointerCapture(e.pointerId);
   v.mouse = renderer.point(e);
-  if (e.button === 2) v.loupe = true;
-  else if (e.button === 1 || (e.button === 0 && (v.mode !== 1 || e.ctrlKey)))
-    pan = renderer.point(e);
+  if (e.button === 2) {
+    e.preventDefault();
+    rightGesture.down({ x: e.clientX, y: e.clientY });
+  } else {
+    rightGesture.cancel();
+  }
+  if (e.button === 1 || (e.button === 0 && (v.mode !== 1 || e.ctrlKey))) pan = renderer.point(e);
   renderer.invalidate();
 };
 canvas.onpointermove = (e) => {
+  rightGesture.move({ x: e.clientX, y: e.clientY }, e.buttons);
   const next = renderer.point(e);
   if (pan) {
     renderer.panBy({ x: next.x - pan.x, y: next.y - pan.y });
@@ -232,6 +270,8 @@ canvas.onpointermove = (e) => {
   }
   v.mouse = next;
   renderer.invalidate();
+};
+function updatePixels() {
   if (v.grid) {
     const uv = renderer.uv();
     pixelText.textContent = [v.slotA, v.slotB]
@@ -244,28 +284,34 @@ canvas.onpointermove = (e) => {
       })
       .join(' | ');
   }
-};
+}
 canvas.onpointerup = (e) => {
   pan = null;
-  v.loupe = e.shiftKey;
+  if (e.button === 2) rightGesture.up({ x: e.clientX, y: e.clientY });
   if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
   renderer.invalidate();
 };
+canvas.onlostpointercapture = () => {
+  if (rightGesture.pressed) rightGesture.cancel();
+};
 canvas.onpointercancel = () => {
+  rightGesture.cancel();
   pan = null;
-  v.loupe = false;
+  v.loupe = shiftHeld;
   renderer.invalidate();
 };
 canvas.addEventListener(
   'wheel',
   (e) => {
     e.preventDefault();
+    rightGesture.forgetClicks();
     renderer.zoomTo(v.zoom * (e.deltaY < 0 ? 1.25 : 0.8), renderer.point(e));
   },
   { passive: false },
 );
 window.onkeydown = (e) => {
   if ((e.target as HTMLElement).matches('input,select')) return;
+  rightGesture.forgetClicks();
   const key = e.key.toLowerCase();
   if (/^[1-8]$/.test(key)) {
     e.preventDefault();
@@ -274,6 +320,7 @@ window.onkeydown = (e) => {
     e.preventDefault();
     select(previous);
   } else if (key === 'shift') {
+    shiftHeld = true;
     v.loupe = true;
     renderer.invalidate();
   } else if (key.length === 1 && 'msdfb'.includes(key)) {
@@ -299,11 +346,15 @@ window.onkeydown = (e) => {
 };
 window.onkeyup = (e) => {
   if (e.key === 'Shift') {
-    v.loupe = false;
+    shiftHeld = false;
+    v.loupe = rightHeld;
     renderer.invalidate();
   }
 };
 window.onblur = () => {
+  shiftHeld = false;
+  rightGesture.cancel();
+  rightHeld = false;
   pan = null;
   v.loupe = false;
   renderer.invalidate();
