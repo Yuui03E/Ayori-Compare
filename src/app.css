@@ -19,7 +19,8 @@ body,
   overflow: hidden;
 }
 button,
-input {
+input,
+select {
   font: inherit;
 }
 button {
@@ -31,9 +32,25 @@ button:disabled {
   opacity: 0.35;
 }
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid #73e0d4;
   outline-offset: 3px;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #789a893f transparent;
+}
+dialog {
+  margin: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 button {
   border: 0;

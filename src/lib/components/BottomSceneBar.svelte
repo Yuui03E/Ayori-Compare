@@ -9,19 +9,32 @@
     SlidersHorizontal,
   } from '@lucide/svelte';
   import { workspace as w } from '../state/workspace.svelte';
+  import { preferences as p } from '../state/preferences.svelte';
+  let query = $state('');
 </script>
 
 <div class="bottom-wrap" data-hud>
   {#if w.drawer}<div class="drawer glass">
       <div class="drawer-title">SCENES <span>{w.matrix?.scenes.length} frames</span></div>
+      <input
+        class="scene-search"
+        aria-label="Search scenes"
+        placeholder="Find a scene or frame number…"
+        bind:value={query}
+      />
       <div class="scene-list">
-        {#each w.matrix?.scenes ?? [] as scene, i}<button
-            class:current={w.sceneIndex === i}
-            onclick={() => w.loadScene(i)}
-            ><span class="mono">{String(i + 1).padStart(2, '0')}</span><strong>{scene.label}</strong
-            ><small>{scene.frames.filter(Boolean).length}/{w.matrix?.sources.length} sources</small
-            ></button
-          >{/each}
+        {#each w.matrix?.scenes ?? [] as scene, i}{#if `${i + 1} ${scene.label}`
+            .toLowerCase()
+            .includes(query.toLowerCase())}<button
+              class:current={w.sceneIndex === i}
+              onclick={() => w.loadScene(i)}
+              data-tip={`Load ${scene.label}. Available in ${scene.frames.filter(Boolean).length} of ${w.matrix?.sources.length} sources.`}
+              ><span class="mono">{String(i + 1).padStart(2, '0')}</span><strong
+                >{scene.label}</strong
+              ><small
+                >{scene.frames.filter(Boolean).length}/{w.matrix?.sources.length} sources</small
+              ></button
+            >{/if}{/each}
       </div>
     </div>{/if}
   <div class="bottom glass">
@@ -29,34 +42,32 @@
       <button
         onclick={() => w.scene(-1)}
         aria-label="Previous scene"
-        title="Previous scene (↑ or [)"
+        data-tip={p.hint('previousScene')}
         disabled={(w.matrix?.scenes.length ?? 0) < 2}><ChevronLeft size={16} /></button
-      ><button class="scene" onclick={() => (w.drawer = !w.drawer)} title="Browse scenes"
+      ><button class="scene" onclick={() => (w.drawer = !w.drawer)} data-tip={p.hint('scenes')}
         ><span class="scene-caption">{w.matrix?.scenes[w.sceneIndex]?.label}</span><small
           class="mono">{w.sceneIndex + 1} / {w.matrix?.scenes.length}</small
         ><ChevronUp size={12} /></button
       ><button
         onclick={() => w.scene(1)}
         aria-label="Next scene"
-        title="Next scene (↓ or ])"
+        data-tip={p.hint('nextScene')}
         disabled={(w.matrix?.scenes.length ?? 0) < 2}><ChevronRight size={16} /></button
       >
     </div>
     <div class="separator"></div>
-    <button class="fit" onclick={() => w.fit()} title="Fit image to viewport (Z)"
+    <button class="fit" onclick={() => w.fit()} data-tip={p.hint('fit')}
       ><Maximize size={13} /><span>Fit</span></button
     >
     <div class="zooms">
       {#each [1, 2, 4, 8] as zoom}<button
           class:chosen={Math.abs(w.zoom - zoom) < 0.001}
+          data-tip={`Set physical pixel zoom to ${zoom * 100}%.${zoom === 1 ? '\n' + p.label('actualSize') : ''}`}
           onclick={() => w.setZoom(zoom)}>{zoom * 100}%</button
         >{/each}
     </div>
     <span class="zoom-value mono">{Math.round(w.zoom * 100)}%</span>
-    <button
-      class="filter"
-      onclick={() => w.setFilter()}
-      title="Cycle filtering: automatic, nearest, bilinear"
+    <button class="filter" onclick={() => w.setFilter()} data-tip={p.hint('filter')}
       ><SlidersHorizontal size={12} />{w.filter === 'auto'
         ? w.zoom >= 1
           ? 'NEAREST'
@@ -66,13 +77,10 @@
           : 'BILINEAR'}{w.filter === 'auto' ? ' · A' : ''}</button
     >
     <div class="separator"></div>
-    <button class="export" onclick={() => w.copy()} title="Copy comparison image (Ctrl+C)"
+    <button class="export" onclick={() => w.copy()} data-tip={p.hint('copy')}
       ><Copy size={13} /><span>Copy PNG</span></button
     >
-    <button
-      class="export"
-      onclick={() => w.exportHtml()}
-      title="Save an offline comparison (Ctrl+E)"
+    <button class="export" onclick={() => w.exportHtml()} data-tip={p.hint('export')}
       ><Download size={13} /><span>Export HTML</span></button
     >
   </div>
@@ -93,6 +101,16 @@
     padding: 8px 10px;
     border-radius: 11px;
     white-space: nowrap;
+  }
+  .scene-search {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid #ffffff15;
+    border-radius: 6px;
+    background: #ffffff04;
+    color: #c5d5cf;
+    font-size: 11px;
+    margin-bottom: 10px;
   }
   .bottom button {
     border-radius: 5px;

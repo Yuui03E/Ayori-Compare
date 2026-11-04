@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Layers2, Columns2, PanelLeft, Scan, Waves, Grid2x2, CircleHelp } from '@lucide/svelte';
   import { workspace as w } from '../state/workspace.svelte';
+  import { preferences as p } from '../state/preferences.svelte';
   import type { Mode } from '../types';
   const modes = [
     { icon: Layers2, label: 'Swap', key: 'M' },
@@ -24,22 +25,28 @@
         class:active={w.mode === i}
         onclick={() => w.setMode(i as Mode)}
         aria-label={mode.label}
-        title={`${mode.label} (${mode.key})${w.mode === i ? ' · ' + names[i][w.subMode] : ''}`}
+        data-tip={`${p.hint('mode' + i)}${w.mode === i ? '\nCurrent: ' + names[i][w.subMode] : ''}`}
         aria-pressed={w.mode === i}
-        ><mode.icon size={18} strokeWidth={1.5} /><span>{mode.key}</span></button
+        ><mode.icon size={18} strokeWidth={1.5} /><span class="mode-name">{mode.label}</span><span
+          class="key-hint">{p.label('mode' + i)}</span
+        ></button
       >{/each}
     <div class="rule"></div>
     <button
       class:active={w.grid}
       onclick={() => w.toggleGrid()}
       aria-label="Pixel grid and readout"
-      title="Pixel grid and readout (G)"
-      aria-pressed={w.grid}><Grid2x2 size={17} strokeWidth={1.5} /><span>G</span></button
+      data-tip={p.hint('grid')}
+      aria-pressed={w.grid}
+      ><Grid2x2 size={17} strokeWidth={1.5} /><span class="mode-name">Pixels</span><span
+        class="key-hint">{p.label('grid')}</span
+      ></button
     >
     <button
       onclick={() => (w.help = true)}
       aria-label="Keyboard shortcuts"
-      title="Keyboard shortcuts (?)"><CircleHelp size={17} strokeWidth={1.5} /></button
+      data-tip={p.hint('settings')}
+      ><CircleHelp size={17} strokeWidth={1.5} /><span class="mode-name">Shortcuts</span></button
     >
   </nav>
   {#if w.mode === 3 || w.mode === 4}<div class="adjust glass">
@@ -47,6 +54,7 @@
       {#if w.mode === 3}<label
           >Gain <span class="mono">{w.gain}×</span><input
             aria-label="Difference gain"
+            data-tip={`Amplify RGB or luma differences from 1× to 50×.\n${p.label('gainDown')} / ${p.label('gainUp')}`}
             type="range"
             min="1"
             max="50"
@@ -56,14 +64,15 @@
         >{:else if w.subMode === 0}<label
           >Frequency <span class="mono">{w.bands}×</span><input
             aria-label="Banding frequency"
+            data-tip={`Change contour frequency from 8× to 64×.\n${p.label('bandsDown')} / ${p.label('bandsUp')}`}
             type="range"
             min="8"
             max="64"
             value={w.bands}
             oninput={(e) => w.setBands(+e.currentTarget.value)}
           /></label
-        >{/if}<button onclick={() => w.setMode(w.mode)}
-        >Cycle view <span class="mono">{w.mode === 3 ? 'F' : 'B'}</span></button
+        >{/if}<button onclick={() => w.setMode(w.mode)} data-tip={p.hint('mode' + w.mode)}
+        >Cycle view <span class="mono">{p.label('mode' + w.mode)}</span></button
       >
     </div>{/if}
 </div>
@@ -86,8 +95,8 @@
     border-radius: 12px;
   }
   .dock button {
-    width: 40px;
-    height: 42px;
+    width: 72px;
+    height: 54px;
     position: relative;
     background: transparent;
     border-radius: 7px;
@@ -104,7 +113,11 @@
     color: #a0e5d6;
     box-shadow: inset 0 0 0 1px #8fe3cc18;
   }
-  .dock button span {
+  .dock button .key-hint {
+    max-width: 60px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     position: absolute;
     bottom: 3px;
     right: 4px;
@@ -112,6 +125,20 @@
       7px Consolas,
       monospace;
     opacity: 0.4;
+  }
+  .dock button .mode-name {
+    font-size: 9px;
+    margin-top: -5px;
+    color: inherit;
+  }
+  @media (max-height: 760px) {
+    .dock button {
+      height: 44px;
+      width: 60px;
+    }
+  }
+  .dock button :global(svg) {
+    margin-top: 5px;
   }
   .rule {
     height: 1px;

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { FolderOpen, Images, ArrowUpRight, ScanLine, Keyboard } from '@lucide/svelte';
   import { workspace as w } from '../state/workspace.svelte';
+  import { preferences as p } from '../state/preferences.svelte';
 </script>
 
 <main class="empty">
@@ -30,23 +31,44 @@
       <div class="scan"><ScanLine size={22} /></div>
     </div>
     <h2>Drop your frames here</h2>
-    <p>2–8 images for one scene, or folders for a whole sequence.</p>
+    <p>Compare a single frame or an entire collection.</p>
     <div class="actions">
-      <button class="primary" onclick={() => w.choose(false)} disabled={w.importing}
-        ><Images size={15} /> Open images</button
+      <button
+        class="primary"
+        data-tip={p.hint('openImages')}
+        onclick={() => w.choose(false)}
+        disabled={w.importing}><Images size={15} /> Open images</button
       >
-      <button class="secondary" onclick={() => w.choose(true)} disabled={w.importing}
-        ><FolderOpen size={15} /> Open folders</button
+      <button
+        class="secondary"
+        data-tip={p.hint('openFolders')}
+        onclick={() => w.choose(true)}
+        disabled={w.importing}><FolderOpen size={15} /> Open folders</button
       >
+    </div>
+    <div class="import-guide">
+      <div>
+        <strong>Images → one scene</strong><span
+          >Two, ten or 100 alternatives. Choose any pair.</span
+        >
+      </div>
+      <div>
+        <strong>Folders → matched scenes</strong><span
+          >One folder per release or encoding group.</span
+        >
+      </div>
     </div>
     <div class="formats mono">PNG <span>·</span> WEBP <span>·</span> AVIF <span>·</span> JPEG</div>
   </div>
-  <button class="sample" onclick={() => w.showDemo()}
-    >Explore a sample comparison <ArrowUpRight size={14} /></button
+  <button
+    class="sample"
+    data-tip="Explore the inspection modes with generated sample images. No files are needed."
+    onclick={() => w.showDemo()}>Explore a sample comparison <ArrowUpRight size={14} /></button
   >
   <footer>
-    <span>Built for the details you almost missed.</span><button onclick={() => (w.help = true)}
-      ><Keyboard size={14} /> Keyboard shortcuts</button
+    <span>Built for the details you almost missed.</span><button
+      data-tip={p.hint('settings')}
+      onclick={() => (w.help = true)}><Keyboard size={14} /> Keyboard shortcuts</button
     >
   </footer>
 </main>
@@ -100,12 +122,35 @@
     margin: 0;
   }
   .drop-card {
-    width: 470px;
+    width: min(510px, calc(100vw - 48px));
     border-radius: 18px;
     padding: 26px 34px 20px;
     text-align: center;
     border-style: dashed;
     background: #11141699;
+  }
+  .import-guide {
+    display: flex;
+    text-align: left;
+    gap: 20px;
+    margin-top: 23px;
+    padding-top: 17px;
+    border-top: 1px solid #ffffff0b;
+  }
+  .import-guide > div {
+    flex: 1;
+  }
+  .import-guide strong {
+    color: #b3c5bf;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .import-guide span {
+    display: block;
+    font-size: 10px;
+    color: #758b81;
+    line-height: 1.6;
+    margin-top: 4px;
   }
   .preview {
     display: flex;

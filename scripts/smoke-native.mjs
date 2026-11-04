@@ -15,7 +15,7 @@ try {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.reload();
   await page.getByRole('button', { name: 'Explore a sample comparison' }).click();
-  await page.getByText('SAMPLE COMPARISON', { exact: true }).waitFor();
+  await page.waitForFunction(() => window.__AYORI_WORKSPACE__?.demo);
   const result = await page.evaluate(async () => {
     const w = window.__AYORI_WORKSPACE__;
     const r = w.renderer,

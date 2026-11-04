@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { Minus, Square, X, ScanLine } from '@lucide/svelte';
+  import { Minus, Square, X, ScanLine, Settings2 } from '@lucide/svelte';
+  import { workspace as w } from '../state/workspace.svelte';
+  import { preferences as p } from '../state/preferences.svelte';
   import { isTauri } from '@tauri-apps/api/core';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   let { onerror = (_: string) => {} }: { onerror?: (message: string) => void } = $props();
@@ -20,15 +22,21 @@
     >
   </div>
   <div class="window-actions">
-    <button aria-label="Minimize" title="Minimize" onclick={() => control('minimize')}
+    <button
+      class="settings"
+      aria-label="Settings and shortcuts"
+      data-tip={p.hint('settings')}
+      onclick={() => (w.help = true)}><Settings2 size={14} /><span>Settings</span></button
+    >
+    <button aria-label="Minimize" data-tip="Minimize" onclick={() => control('minimize')}
       ><Minus size={14} /></button
     >
     <button
       aria-label="Maximize or restore"
-      title="Maximize or restore"
+      data-tip="Maximize or restore"
       onclick={() => control('toggleMaximize')}><Square size={11} /></button
     >
-    <button class="close" aria-label="Close" title="Close" onclick={() => control('close')}
+    <button class="close" aria-label="Close" data-tip="Close" onclick={() => control('close')}
       ><X size={15} /></button
     >
   </div>
@@ -66,6 +74,15 @@
     width: 44px;
     background: transparent;
     color: #9b9ba5;
+  }
+  button.settings {
+    width: auto;
+    display: flex;
+    gap: 7px;
+    padding: 0 15px;
+    color: #9abdb3;
+    border-right: 1px solid #ffffff0c;
+    font-size: 10px;
   }
   button:hover {
     background: #ffffff0c;

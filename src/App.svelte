@@ -11,14 +11,20 @@
   import BottomSceneBar from './lib/components/BottomSceneBar.svelte';
   import PixelReadout from './lib/components/PixelReadout.svelte';
   import HelpDialog from './lib/components/HelpDialog.svelte';
+  import SourceBrowser from './lib/components/SourceBrowser.svelte';
+  import Tooltip from './lib/components/Tooltip.svelte';
+  import { preferences as p } from './lib/state/preferences.svelte';
+  import { runCommand } from './lib/commands';
   import { workspace as w } from './lib/state/workspace.svelte';
-  import type { Metric, Mode, Point } from './lib/types';
+  import type { Metric, Point } from './lib/types';
   let canvas: HTMLCanvasElement;
   let rendererError = $state('');
   let lastActivity = performance.now(),
     hoveringHud = false;
   let altHeld = $state(false);
   let pan: Point | null = null;
+  let loupeKey = '';
+  let rightHeld = false;
   const modeNames = ['Instant swap', 'Curtain', 'Side by side', 'Difference', 'Banding & planes'];
   function activity(event?: PointerEvent) {
     lastActivity = performance.now();
@@ -28,66 +34,46 @@
   function keydown(event: KeyboardEvent) {
     altHeld = event.altKey;
     activity();
-    if (w.help) return;
+    if (w.help || w.sourceBrowser) return;
+    if (event.key === 'Escape') {
+      w.hudLocked = false;
+      w.hudHidden = false;
+      w.drawer = false;
+      w.loupe(false);
+      loupeKey = '';
+      return;
+    }
     const target = event.target as HTMLElement;
-    if (target.matches('input,textarea,select') || target.isContentEditable) return;
-    if (event.key === '?' || event.key === 'F1') {
-      event.preventDefault();
-      w.help = true;
+    if (
+      target.closest('input,textarea,select,[contenteditable="true"]') ||
+      target.isContentEditable
+    )
       return;
-    }
-    if (!w.matrix) return;
-    const key = event.key.toLowerCase();
-    if ((event.ctrlKey || event.metaKey) && key === 'c') {
-      event.preventDefault();
-      void w.copy();
-      return;
-    }
-    if ((event.ctrlKey || event.metaKey) && key === 'e') {
-      event.preventDefault();
-      void w.exportHtml();
-      return;
-    }
-    if (event.ctrlKey || event.metaKey) return;
-    if (/^[1-8]$/.test(key)) {
-      event.preventDefault();
-      w.select(+key - 1, event.altKey);
-      return;
-    }
-    if (key === 'shift') {
+    if (target.closest('button,a') && [' ', 'Enter'].includes(event.key)) return;
+    const action = p.match(event);
+    if (!action || (!w.matrix && !action.global)) return;
+    event.preventDefault();
+    if (event.repeat && !action.repeat) return;
+    if (action.id === 'loupe') {
+      loupeKey = event.code;
       w.loupe(true);
-      return;
-    }
-    if (key === 'arrowleft' || key === 'arrowright') {
-      event.preventDefault();
-      w.cycleSource(key === 'arrowleft' ? -1 : 1);
-      return;
-    }
-    if (['arrowup', 'arrowdown', '[', ']'].includes(key)) {
-      event.preventDefault();
-      w.scene(key === 'arrowup' || key === '[' ? -1 : 1);
-      return;
-    }
-    if (event.repeat) return;
-    if (key === ' ') {
-      event.preventDefault();
-      w.swap();
-    } else if ('msdfb'.includes(key) && key.length === 1) {
-      event.preventDefault();
-      w.setMode('msdfb'.indexOf(key) as Mode);
-    } else if (key === 'z' || key === '0') {
-      event.preventDefault();
-      w.toggleZoom();
-    } else if (key === 'g') w.toggleGrid();
-    else if (key === 'h') w.toggleHud();
+    } else runCommand(action.id);
   }
   function keyup(event: KeyboardEvent) {
     altHeld = event.altKey;
-    if (event.key === 'Shift') w.loupe(false);
+    if (
+      loupeKey &&
+      (event.code === loupeKey || ['Control', 'Shift', 'Alt', 'Meta'].includes(event.key))
+    ) {
+      loupeKey = '';
+      w.loupe(rightHeld);
+    }
   }
   function blur() {
     altHeld = false;
     pan = null;
+    loupeKey = '';
+    rightHeld = false;
     w.loupe(false);
   }
   onMount(() => {
@@ -104,6 +90,7 @@
       canvas.focus({ preventScroll: true });
       w.move(e);
       if (e.button === 2) {
+        rightHeld = true;
         w.loupe(true);
         canvas.setPointerCapture(e.pointerId);
         return;
@@ -124,7 +111,10 @@
     };
     const up = (e: PointerEvent) => {
       pan = null;
-      if (e.button === 2) w.loupe(e.shiftKey);
+      if (e.button === 2 || e.type === 'pointercancel') {
+        rightHeld = false;
+        w.loupe(!!loupeKey);
+      }
       if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
     };
     const wheel = (e: WheelEvent) => {
@@ -144,7 +134,13 @@
     const idle = setInterval(() => {
       if (!w.hudLocked)
         w.hudHidden =
-          !!w.matrix && !hoveringHud && !w.help && performance.now() - lastActivity > 2500;
+          p.autoHide &&
+          !!w.matrix &&
+          !hoveringHud &&
+          !w.help &&
+          !w.sourceBrowser &&
+          !w.drawer &&
+          performance.now() - lastActivity > 2500;
     }, 250);
     if (isTauri()) {
       let lastDrop = 0,
@@ -188,7 +184,12 @@
 </script>
 
 <svelte:window onkeydown={keydown} onkeyup={keyup} onpointermove={activity} onblur={blur} />
-<canvas bind:this={canvas} aria-label="Image comparison viewport" tabindex="0"></canvas>
+<canvas
+  bind:this={canvas}
+  class:idle={!w.matrix}
+  aria-label="Image comparison viewport"
+  tabindex="0"
+></canvas>
 {#if !w.matrix}<EmptyDropzone />{/if}
 <div class="hud" class:hidden={w.hudHidden}>
   <Titlebar onerror={(message) => w.notify(message)} />
@@ -196,20 +197,22 @@
     <TopSourceBar /><ModeDock /><BottomSceneBar />
     <div class="mode-label">
       {modeNames[w.mode]}<span
-        >{w.mode === 0 ? '1–8 to switch · Space to flicker' : 'Hold Shift for dual loupe'}</span
+        >{w.mode === 0
+          ? `${p.label('nextSource')} next source · ${p.label('flicker')} flicker`
+          : `${p.label('loupe')} or right hold · dual loupe`}</span
       >
     </div>
     <div class="status-left">
       <i></i>{w.demo ? 'PROCEDURAL SAMPLE' : 'LOCAL WORKSPACE'}<span
-        title="RGB source samples are interpreted as SDR without ICC conversion; see keyboard help for precision details."
+        data-tip="RGB source samples are interpreted as SDR without ICC conversion; see keyboard help for precision details."
         >Source RGB · SDR</span
       >
     </div>
     <div class="status-right">
       {#if w.loading}<LoaderCircle size={10} class="spinner" /> Loading scene{:else}{w.frames.filter(
           Boolean,
-        ).length} sources <b>·</b>
-        <span title="Scene preparation including decode, transfer, and GPU upload"
+        ).length} ready / {w.matrix.sources.length} sources <b>·</b>
+        <span data-tip="Scene preparation including decode, transfer, and GPU upload"
           >{w.loadMs.toFixed(0)} ms</span
         >{/if}<b>·</b>{Math.round(w.zoom * 100)}%
     </div>
@@ -217,14 +220,19 @@
 </div>
 {#if w.fallback}<div
     class="precision"
-    title="This GPU uses 8-bit preview textures. Differences and effects use that preview precision. Exact decoded 16-bit source values remain available in the pixel readout."
+    data-tip="This GPU uses 8-bit preview textures. Differences and effects use that preview precision. Exact decoded 16-bit source values remain available in the pixel readout."
   >
     8-bit preview · exact source readout retained
   </div>{/if}
 {#if w.matrix && !w.loading && (!w.frames[w.slotA] || ([1, 2, 3].includes(w.mode) && !w.frames[w.slotB]))}<div
     class="missing-label"
   >
-    A selected source is missing from this scene.
+    {w.pendingSlots.includes(w.slotA) ||
+    ([1, 2, 3].includes(w.mode) && w.pendingSlots.includes(w.slotB))
+      ? 'Preparing selected image…'
+      : w.errors[w.slotA] || w.errors[w.slotB]
+        ? 'A selected image could not be decoded. See Browse sources for details.'
+        : 'A selected source is missing from this scene.'}
   </div>{/if}
 <PixelReadout />
 {#if w.message}<div class="toast glass" role="status">
@@ -245,6 +253,8 @@
     </p>
   </div>{/if}
 <HelpDialog />
+<SourceBrowser />
+<Tooltip />
 
 <style>
   canvas {
@@ -254,6 +264,9 @@
     height: 100%;
     outline: none;
     touch-action: none;
+  }
+  canvas.idle {
+    visibility: hidden;
   }
   .hud {
     transition: opacity 250ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -282,6 +295,11 @@
     font-size: 9px;
     margin-top: 5px;
     color: #536461;
+  }
+  @media (max-height: 760px) {
+    .mode-label {
+      display: none;
+    }
   }
   .status-left,
   .status-right {

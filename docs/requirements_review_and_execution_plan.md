@@ -66,6 +66,13 @@ The user explicitly selected these behaviors on 2026-11-04:
 
 These decisions supersede any implication that all scenes are complete or that a silent 16-to-8-bit conversion still satisfies full-precision inspection.
 
+### Subsequent user decisions — 2026-11-04
+
+- Remove the eight-image/source product restriction and support large collections such as 100 images or many release/encoding-group folders. The user delegated the import organization choice: individual files remain alternatives of one scene; folders preserve the existing matched-scene workflow. No automatic pairing of unrelated loose files is inferred.
+- Add more keyboard actions and a user-editable shortcut interface, with saved assignments and descriptive hover help on controls.
+- Preserve the current typography and dark styling while making the UI richer, more attractive and more informative. A searchable source browser, explicit A/B metadata, visible mode labels, source/image counts, import guidance and dedicated settings implement this direction.
+- Eight remains an internal limit on resident comparison images, not an import limit. Large collections prepare newly selected images on demand; the original immediate-switch target applies to already-loaded sources. Physical hardware and Linux qualification remain as recorded in `PROGRESS.md`.
+
 ## 5. Architecture we will carry forward
 
 The intended stack is Tauri v2, Rust 2024 with MSRV at least 1.89, Svelte 5 runes, TypeScript, Tailwind CSS v4, and WebGL2 / GLSL ES 3.00. Exact compatible dependency versions and APIs will be verified during the foundation stage and captured in lockfiles.
