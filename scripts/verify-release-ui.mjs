@@ -117,6 +117,20 @@ try {
     const menu = page.getByRole('dialog', { name: 'View options', exact: true });
     await options.click();
     await menu.waitFor({ state: 'visible' });
+    await options.click();
+    await menu.waitFor({ state: 'hidden' });
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[aria-label="View options"]')?.getAttribute('aria-expanded') ===
+        'false',
+    );
+    assert.equal(
+      await options.getAttribute('aria-expanded'),
+      'false',
+      'Trigger closes its open menu',
+    );
+    await options.click();
+    await menu.waitFor({ state: 'visible' });
     const menuBounds = await menu.boundingBox();
     assert(menuBounds.x >= 0 && menuBounds.x + menuBounds.width <= 960);
     await menu.getByRole('button', { name: '400%', exact: true }).click();
@@ -126,6 +140,11 @@ try {
       .waitFor();
     await page.keyboard.press('Escape');
     await menu.waitFor({ state: 'hidden' });
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[aria-label="View options"]')?.getAttribute('aria-expanded') ===
+        'false',
+    );
     assert.equal(await options.getAttribute('aria-expanded'), 'false');
     assert(
       await options.evaluate((b) => b === document.activeElement),
@@ -135,6 +154,11 @@ try {
     await menu.waitFor({ state: 'visible' });
     await page.mouse.click(480, 500);
     await menu.waitFor({ state: 'hidden' });
+    await page.waitForFunction(
+      () =>
+        document.querySelector('[aria-label="View options"]')?.getAttribute('aria-expanded') ===
+        'false',
+    );
     await options.click();
     await menu.waitFor({ state: 'visible' });
     await page.keyboard.press('Escape');

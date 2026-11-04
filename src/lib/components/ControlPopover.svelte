@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { tick, type Snippet } from 'svelte';
+  import type { Snippet } from 'svelte';
   let {
     open = $bindable(false),
     anchor,
     label,
+    id,
     children,
   }: {
     open?: boolean;
     anchor: HTMLButtonElement | undefined;
     label: string;
+    id: string;
     children: Snippet;
   } = $props();
   let panel: HTMLDivElement;
@@ -22,11 +24,6 @@
     if (!panel) return;
     if (open && !panel.matches(':popover-open')) {
       panel.showPopover();
-      position();
-      void tick().then(() => {
-        if (panel.matches(':popover-open'))
-          panel.querySelector<HTMLElement>('input,button')?.focus();
-      });
     } else if (!open && panel.matches(':popover-open')) panel.hidePopover();
   });
 </script>
@@ -34,13 +31,13 @@
 <svelte:window onresize={position} />
 <div
   bind:this={panel}
+  {id}
   popover="auto"
   role="dialog"
   aria-label={label}
   data-hud
   onbeforetoggle={(event) => {
     if (event.newState === 'closed') {
-      open = false;
       if (panel.contains(document.activeElement)) anchor?.focus();
     }
   }}
@@ -48,6 +45,10 @@
     const visible = panel.matches(':popover-open');
     if (!visible && panel.contains(document.activeElement)) anchor?.focus();
     open = visible;
+    if (visible) {
+      position();
+      panel.querySelector<HTMLElement>('input,button')?.focus();
+    }
   }}
 >
   {@render children()}

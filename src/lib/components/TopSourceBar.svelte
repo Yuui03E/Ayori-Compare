@@ -143,7 +143,7 @@
       aria-haspopup="dialog"
       aria-expanded={w.drawer}
       data-tip={`${w.matrix?.scenes[w.sceneIndex]?.label}\n${p.hint('scenes')}`}
-      onclick={() => (w.drawer = !w.drawer)}
+      popovertarget="scene-popover"
     >
       {#if w.loading}<LoaderCircle size={12} class="spinner" />{:else}<span class="scene-word"
           >Scene</span
@@ -188,7 +188,7 @@
       aria-haspopup="dialog"
       aria-expanded={more}
       data-tip={`View options · ${names[w.mode][w.subMode]}\nZoom, filtering, effect adjustments and export.`}
-      onclick={() => (more = !more)}><SlidersHorizontal size={15} /></button
+      popovertarget="view-popover"><SlidersHorizontal size={15} /></button
     >
     <button
       class="icon"
@@ -197,12 +197,17 @@
       aria-haspopup="dialog"
       aria-expanded={importing}
       data-tip="Open images, matched source folders, or add more sources."
-      onclick={() => (importing = !importing)}><Plus size={17} /></button
+      popovertarget="import-popover"><Plus size={17} /></button
     >
   </div>
 </div>
 
-<ControlPopover bind:open={importing} anchor={importButton} label="Import comparison">
+<ControlPopover
+  id="import-popover"
+  bind:open={importing}
+  anchor={importButton}
+  label="Import comparison"
+>
   <div class="menu-heading">IMPORT</div>
   <button class="menu-item" onclick={() => open(false)} data-tip={p.hint('openImages')}
     ><Images size={15} /><span>Open images<small>Alternatives of the same frame</small></span><kbd
@@ -222,7 +227,7 @@
     ><Plus size={15} /><span>Add sources<small>Extend this comparison</small></span></button
   >
 </ControlPopover>
-<ControlPopover bind:open={w.drawer} anchor={sceneButton} label="Scenes">
+<ControlPopover id="scene-popover" bind:open={w.drawer} anchor={sceneButton} label="Scenes">
   <div class="menu-heading">SCENES <span>{w.matrix?.scenes.length} matched frames</span></div>
   <input
     class="scene-search"
@@ -245,7 +250,7 @@
     </button>{/each}
   {#if !scenes.length}<p class="empty">No matching scenes.</p>{/if}
 </ControlPopover>
-<ControlPopover bind:open={more} anchor={moreButton} label="View options">
+<ControlPopover id="view-popover" bind:open={more} anchor={moreButton} label="View options">
   <div class="menu-heading">VIEW <span>{names[w.mode][w.subMode]}</span></div>
   <div class="presets">
     <button data-tip={p.hint('fit')} onclick={() => w.fit()}><Maximize size={12} /> Fit</button>
