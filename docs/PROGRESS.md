@@ -257,3 +257,9 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Newly exported offline HTML passes configurable 375% zoom, exact pan/zoom/crop restoration, anchored pixel readout, right/Shift loupe coordination and scene-reset behavior with zero network requests/errors. Corrected its verification script to wait for the final exact-sample status instead of the transient ready count.
 - Packaged 100-image UI workflow and real two-source/four-scene WEBP workflow pass, including saved keys, tooltips, guides, popovers, shared buffers and maximize/restore. Clipboard reader matches all **1,296,000 RGBA pixels**. Latest source coverage is **37 passing frontend tests**; Rust decoder/metric/transport logic and both lockfiles are unchanged.
 - Requested gesture, settings and resolution explanation are complete. Existing Linux, clean-machine, physical mixed-monitor and 240 Hz qualifications remain external; prior performance limits and dependency advisory remain documented. Source samples and resampling algorithms are unchanged.
+
+### 2026-11-04 — Logo concepts prepared for user selection
+
+- Created three original, editable vector logo directions in `design/logo-concepts`: A / Facet (asymmetric A), B / Twinlight (split lens), and C / Parallax (offset comparison frames). Prepared a combined PNG sheet, individual preview cards and a reproducible HTML presentation.
+- Visually reviewed the rendered sheet, including 16/24/32px sizes, a 48px app icon treatment, single-color silhouettes and compact title-bar mockups. These are design previews; app components, native icons and the delivered executable are unchanged.
+- Next: the user chooses a direction, as explicitly requested. Then refine/apply that mark, regenerate native icons and verify the final packaged app. No logo integration milestone is complete yet.
