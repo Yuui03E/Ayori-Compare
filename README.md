@@ -37,6 +37,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 npm run desktop:build
 ```
 
-The portable Windows executable is built under `src-tauri/target/release/`. WebView2 is a runtime prerequisite. Build a Linux AppImage on a Linux host using `npm run tauri -- build --bundles appimage`.
+The portable Windows executable is delivered as **`releases/Ayori.exe`**. The build copies it from Cargo's output and verifies the SHA-256 matches; `node scripts/prepare-portable.mjs` can prepare this copy from an existing build. WebView2 is a runtime prerequisite. Build a Linux AppImage on a Linux host using `npm run tauri -- build --bundles appimage`.
+
+Explorer may retain an old logo in its Details preview after an executable is replaced at the same path. Use the portable copy above; it has the approved Facet resources. If an already-open Details pane remains stale, close and reopen that Explorer window.
 
 Progress and measured limitations are recorded after each step in `docs/PROGRESS.md`.

@@ -1,6 +1,7 @@
 # JavaScript dependencies and build output
 /node_modules/
 /dist/
+/releases/
 *.tsbuildinfo
 
 # Rust build output and generated Tauri schemas
