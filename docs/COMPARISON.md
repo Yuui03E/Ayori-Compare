@@ -2,7 +2,11 @@
 
 ## Importing images
 
-Individual images become alternatives within one scene. Folders represent different releases or encoding groups, with frames matched by filename or trailing frame number. Missing source frames remain visible as missing cells.
+Open a single folder containing named comparison pairs, or select those images together. Names such as `src_01` / `final_01`, `src_01` / `filter_01`, `01_src` / `01_out`, and `frame_01(a)` / `frame_01(b)` form matched scenes automatically. Source/reference images come first for A; output/filter/encode images follow for B. `src(a)` / `out(b)` works for a single pair. Capitalization, common separators and zero padding do not affect pairing; episode and scene identifiers stay part of the match.
+
+Images without a clear source/output naming pattern remain alternatives within one scene. Multiple folders represent different releases or encoding groups, with frames matched by filename or trailing frame number. Missing source frames remain visible as missing cells. Duplicate candidates are reported instead of choosing one arbitrarily. Single-folder imports report images without recognized source/output labels.
+
+Use **+ → Add sources** or Alt-drop to add named images or another named-pair folder. Selecting the same folder again adds newly created named images and keeps existing source columns in order.
 
 Ayori accepts extracted PNG, WebP, AVIF and JPEG images. Direct video decoding and disc extraction are outside its scope.
 

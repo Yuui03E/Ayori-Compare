@@ -237,8 +237,14 @@
         <section>
           <h3>1 · Bring in your sources</h3>
           <p>
-            <b>One frame, several versions:</b> open or drop the images together. Each image becomes a
-            source.
+            <b>One frame, several versions:</b> open or drop the images together. Images without a source/output
+            naming pattern become alternatives of one scene.
+          </p>
+          <p>
+            <b>Named source/output pairs:</b> open one folder or select the paired images.
+            <b>src_01 / final_01</b>, <b>src_01 / filter_01</b> and <b>src(a) / out(b)</b>
+            automatically place the source first for A and the output second for B. Matching scene names
+            or numbers form rows; duplicate candidates are reported and left missing.
           </p>
           <p>
             <b>Several frames across releases:</b> choose one folder per WEB-DL, DVD, BDMV capture or

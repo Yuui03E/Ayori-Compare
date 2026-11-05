@@ -59,13 +59,13 @@
     </div>
     <div class="import-guide">
       <div>
-        <strong>Images → one scene</strong><span
-          >Two, ten or 100 alternatives. Choose any pair.</span
+        <strong>Images → alternatives or pairs</strong><span
+          >Named src / out frames line up automatically.</span
         >
       </div>
       <div>
         <strong>Folders → matched scenes</strong><span
-          >One folder per release or encoding group.</span
+          >One folder of named pairs, or a folder per release.</span
         >
       </div>
     </div>

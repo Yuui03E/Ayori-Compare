@@ -57,6 +57,11 @@
   );
   const size = (n: number) =>
     n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${(n / 1e3).toFixed(0)} KB`;
+  function sourceName(slot: number) {
+    const source = w.matrix?.sources[slot];
+    const path = w.matrix?.scenes[w.sceneIndex]?.frames[slot];
+    return source?.kind === 'series' && path ? path.split(/[\\/]/).pop() : source?.label;
+  }
   function sourceInfo(slot: number) {
     const frame = w.frames[slot],
       score = w.scores[slot];
@@ -77,7 +82,7 @@
             : w.demo
               ? 'Procedural sample'
               : w.metricStatus || 'Score pending';
-    return `${w.matrix?.sources[slot]?.label}\n${details}\n${metric}\nChoose A or B · ${p.label('sources')}`;
+    return `${sourceName(slot)}\n${details}\n${metric}\nChoose A or B · ${p.label('sources')}`;
   }
   function open(folders: boolean, append = false) {
     importing = false;
@@ -103,7 +108,7 @@
         onclick={() => (w.sourceBrowser = true)}
       >
         <span class="badge">{side ? 'B' : 'A'}</span><span class="source-name"
-          >{w.matrix?.sources[slot]?.label}</span
+          >{sourceName(slot)}</span
         >
         <small>{slot + 1}</small>{#if side === 1 && w.slotA === w.slotB}<span
             class="same-source"
@@ -199,7 +204,7 @@
       aria-label="Import images or folders"
       aria-haspopup="dialog"
       aria-expanded={importing}
-      data-tip="Open images, matched source folders, or add more sources."
+      data-tip="Open images, a folder of named pairs, matched source folders, or add more sources."
       popovertarget="import-popover"><Plus size={17} /></button
     >
   </div>
@@ -213,19 +218,19 @@
 >
   <div class="menu-heading">IMPORT</div>
   <button class="menu-item" onclick={() => open(false)} data-tip={p.hint('openImages')}
-    ><Images size={15} /><span>Open images<small>Alternatives of the same frame</small></span><kbd
-      >{p.label('openImages')}</kbd
-    ></button
+    ><Images size={15} /><span
+      >Open images<small>One frame or named source/output pairs</small></span
+    ><kbd>{p.label('openImages')}</kbd></button
   >
   <button class="menu-item" onclick={() => open(true)} data-tip={p.hint('openFolders')}
     ><FolderOpen size={15} /><span
-      >Open source folders<small>One folder per release or encoding group</small></span
+      >Open source folders<small>Named pairs in one folder, or folders per release</small></span
     ></button
   >
   <button
     class="menu-item"
     disabled={w.demo}
-    onclick={() => open(w.matrix?.sources[0].kind === 'folder', true)}
+    onclick={() => open(w.matrix?.sources[0].kind !== 'file', true)}
     data-tip={p.hint('append')}
     ><Plus size={15} /><span>Add sources<small>Extend this comparison</small></span></button
   >

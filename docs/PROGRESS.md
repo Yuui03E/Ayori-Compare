@@ -4,8 +4,9 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Current position
 
-- Updated: 2026-11-05.
-- Branch: `main`.
+- Updated: 2026-11-06.
+- Branch: `codex/filename-pairing`.
+- Named source/output comparisons are implemented and verified locally. `releases/Ayori.exe` is the new **8,553,472-byte** build; the public v0.1.0 executable remains unchanged.
 - The trailer is published in the GitHub README; its standalone source and the user's saved video live in the sibling Desktop folder `Ayori_trailer`.
 - The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
@@ -23,6 +24,7 @@ This is the current handoff record. Read it before making changes and update it 
 | 5. UI and live analysis | Implemented and smoke-verified | UI visually inspected; real SSIMULACRA2 scores and atomic file hot reload preserve view state. |
 | 6. Sharing and release | Final Windows artifact verified; external qualification deferred | Clipboard matches every captured pixel; offline HTML passes. Published v0.1.0 executable is 8,501,248 bytes. Linux, clean-machine, physical mixed-DPI and 240 Hz testing need other environments. |
 | 7. Large collections and configurable UI | Complete; final Windows package verified | 100-image and 100-folder comparisons, bounded residency, searchable A/B selection, 53 editable actions, saved preferences, live hover help and richer UI pass. 22 frontend + 21 Rust tests. |
+| 8. Named encoding pairs | Complete; local Windows package verified | Single-folder and selected-file imports create src/final columns and four scenes from the user's folder. 28 Rust + 37 frontend tests, native filenames/scoring/exchange, visual comparison and offline export pass. |
 
 ## Completed steps
 
@@ -34,7 +36,9 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Resume here
 
-The latest requested features are complete. Images are alternatives of one scene; folders represent releases/encoding groups with matching frame rows. Browse all searches arbitrary A/B sources. Settings contains 53 editable actions and interface preferences, saved locally. Large comparisons prepare selected/nearby images on demand while keeping at most eight resident; cold selection is not an instant-switch guarantee. Exact source samples, sparse cells and stale-work safeguards remain intact.
+The latest requested feature is complete: a folder containing `src_01` / `final_01` through frame 04 becomes two columns and four scenes, with source first for A and output second for B. Clearly named selected files also form matched scenes; unrelated files retain single-scene alternatives. Multi-folder release matching, bounded residency, exact source samples, sparse cells and stale-work safeguards remain intact. See the 2026-11-06 entries for supported naming conventions and verification.
+
+New local portable app: `releases/Ayori.exe`, **8,553,472 bytes**, SHA-256 `14ea8e211b9a647304458ae9c0018287178b303fe5b93c14d69db49a7b0bef3a`. Source changes are on `codex/filename-pairing`; neither this code nor executable has been published. Dependencies/build output have been recreated locally for verification and remain ignored.
 
 Current released executable: [Ayori v0.1.0](https://github.com/Yuui03E/Ayori-Compare/releases/tag/v0.1.0), **8,501,248 bytes**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. The preserved local app is in the sibling `Ayori Local` folder. Final packaged validation, the Facet identity and publication evidence are recorded in the dated entries below. Generated build caches were removed during source cleanup; run `npm ci` before rebuilding.
 
@@ -375,3 +379,20 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Generated the 1280×640 (2:1 aspect ratio) GitHub Social Preview image based on the repository's brand identity and README banner vector source.
 - Verified exact 1280×640 dimensions, 275,645 byte file size (well within GitHub's 1 MB limit), balanced vertical spacing (158 px top/bottom margins), safe zone compliance, subtle ambient glow, and zero corner clipping artifacts.
 - Created `docs/images/social-preview.svg` and `docs/images/social-preview.png` in the repository, and delivered the adjusted PNG directly to the user's Downloads directory at `C:\Users\Yuui\Downloads\Ayori-social-preview.png` (along with the centered card alternative `Ayori-social-preview-card.png`).
+
+### 2026-11-06 — Named encoding pairs implemented and correctness-verified
+
+- Inspected the user's comparison folder read-only: eight WebP images named `src_01` / `final_01` through frame 04. Added single-folder import and conservative selected-file detection for source/output series; A initializes from source/reference and B from output/filter/encode. Prefixes, suffixes, case, zero padding and explicit `(a)` / `(b)` markers are supported. A/B controls display the active image filename.
+- Retained unrelated loose images as single-scene alternatives and existing multi-folder matching. Named matching preserves episode/scene identity, reports duplicate candidates, retains sparse cells, and never chooses an ambiguous candidate. Appending preserves columns and supports newly exported files when reopening the same folder. Series members retain unmatched images for future append matching. File discovery and matching remain on the existing backend worker; decoding, precision and stale-result guards are unchanged.
+- Verification: **28 Rust tests** (24 unit + 4 AVIF worker), **37 frontend tests**, and frontend/offline build with zero Svelte errors/warnings pass. New tests cover actual-folder naming, prefix/suffix/side labels, episode separation, natural ordering, missing/ambiguous frames, unknown-file fallback, mismatch rejection, append and duplicate imports.
+- Updated Home, import menu, help and comparison documentation. Strict all-target/all-feature Clippy and Rust formatting pass. Final packaged Windows verification is pending. No user images or generated outputs are tracked; both lockfiles are unchanged.
+- Next: finish strict lint checks, build the portable Windows app, verify the user's four pairs in the actual packaged UI and its offline export, visually inspect the result and record the new executable. The public v0.1.0 binary remains the earlier build.
+
+### 2026-11-06 — Named encoding pairs verified in the portable Windows app
+
+- `npm run desktop:build` passes with zero Svelte diagnostics. The normal portable app is **8,553,472 bytes (8.55 MB)**, SHA-256 `14ea8e211b9a647304458ae9c0018287178b303fe5b93c14d69db49a7b0bef3a`, below the 10 MB executable target. No development workspace hook is exposed.
+- Added `scripts/verify-named-pairs.mjs` and ran it against the bundled production frontend with a separate WebView2 profile. Both single-folder and selected-file native commands produce two columns and four correctly ordered scenes. Native drag/drop renders all four src/final pairs, A/B filenames follow scene changes, exchange works, and all four 1920×1080 pairs have finite SSIMULACRA2 scores (84.29, 82.93, 86.06, 81.20). Zero frontend errors.
+- Exported the complete named matrix, checked that absolute input paths are omitted, and loaded all four scenes in an offline browser. Source labels, scene counts and exact-sample status are correct, Split works, and there are zero HTTP requests or browser errors. Generated HTML, screenshots, profile and JSON evidence are ignored under `local-fixtures/named-pairs`; user originals were read without modification.
+- Visually inspected the actual Windows Split comparison with `src_04.webp` on A and `final_04.webp` on B, and the updated Home guidance. The native folder picker opens; full picker selection was not completed after its target window changed/closed during automation. Single-folder backend commands and product drag/drop imports are verified. Existing picker implementation is unchanged.
+- Final checks: **28 Rust + 37 frontend tests**, strict all-target/all-feature Clippy, Rust formatting, frontend/offline builds and diff whitespace checks pass. Both lockfiles remain tracked and unchanged. No new timing/memory benchmark, Linux/hardware qualification or public release is claimed.
+- Requested filename-pairing fix is complete locally. Next: review or publish this branch/build when requested; the public v0.1.0 download and preserved sibling app still contain the preceding version.

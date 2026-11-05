@@ -1,7 +1,8 @@
 export interface Source {
   label: string;
   origin: string;
-  kind: 'folder' | 'file';
+  kind: 'folder' | 'file' | 'series';
+  members?: string[];
 }
 export interface Scene {
   id: string;

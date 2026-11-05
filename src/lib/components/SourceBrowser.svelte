@@ -110,7 +110,9 @@
                 ? 'Reference source'
                 : source.kind === 'folder'
                   ? 'Source folder'
-                  : 'Image alternative'}{w.errors[slot]
+                  : source.kind === 'series'
+                    ? 'Named image series'
+                    : 'Image alternative'}{w.errors[slot]
                 ? ' · Decode failed'
                 : !exists
                   ? ' · Missing in this scene'

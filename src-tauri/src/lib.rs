@@ -5,6 +5,7 @@ mod exporter;
 pub mod matrix;
 mod metrics;
 pub mod models;
+mod named_series;
 mod transport;
 mod watcher;
 

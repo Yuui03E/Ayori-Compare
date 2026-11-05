@@ -46,7 +46,7 @@ Compare frames from different releases, spot encoding artifacts and inspect orig
 
 ## From frames to answers
 
-1. **Open** images for one scene, or folders for matched scenes. Supports **PNG · WebP · AVIF · JPEG**.
+1. **Open** images, a folder of named pairs (`src_01` / `final_01`), or folders per release. Supports **PNG · WebP · AVIF · JPEG**.
 2. **Choose A and B**, then pick a comparison mode. Add more sources with **+ → Add sources**.
 3. **Inspect and share.** Press **F1** for shortcuts and guidance; copy a PNG or export an offline comparison.
 

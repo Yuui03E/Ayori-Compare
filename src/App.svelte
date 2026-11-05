@@ -274,7 +274,9 @@
       <Upload size={34} />
       <h2>{altHeld ? 'Add comparison sources' : 'Drop to compare'}</h2>
       <p>
-        {altHeld ? 'Append to the current matrix' : 'Images for one scene · Folders for a sequence'}
+        {altHeld
+          ? 'Append to the current matrix'
+          : 'Images or named pairs · Folders for matched scenes'}
       </p>
     </div>{/if}
   <HelpDialog />

@@ -71,6 +71,15 @@ pub fn build(
     paths: Vec<String>,
     previous: Option<ComparisonMatrix>,
 ) -> Result<ComparisonMatrix, String> {
+    if previous
+        .as_ref()
+        .is_some_and(|m| m.sources.iter().any(|s| s.kind == "series"))
+    {
+        return crate::named_series::append(paths, previous.unwrap());
+    }
+    if previous.is_none() && paths.len() == 1 && Path::new(&paths[0]).is_dir() {
+        return crate::named_series::from_folder(Path::new(&paths[0]));
+    }
     let appending = previous.is_some();
     let mut origins: Vec<String> = previous
         .as_ref()
@@ -96,6 +105,9 @@ pub fn build(
     }
     if files && !appending {
         canonical.sort_by(|a, b| natural_cmp(&name(a), &name(b)));
+        if let Some(matrix) = crate::named_series::from_files(&canonical) {
+            return matrix;
+        }
     }
     let sources = canonical
         .iter()
@@ -103,6 +115,7 @@ pub fn build(
             label: name(p),
             origin: p.to_string_lossy().into(),
             kind: if folders { "folder" } else { "file" }.into(),
+            members: None,
         })
         .collect();
     if files {

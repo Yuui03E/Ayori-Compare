@@ -5,6 +5,9 @@ pub struct Source {
     pub label: String,
     pub origin: String,
     pub kind: String,
+    /// Files belonging to an automatically detected filename series, including unmatched frames.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub members: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

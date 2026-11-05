@@ -194,3 +194,7 @@ The user requested an explanation of mixed-resolution comparison and a double-ri
 ## Subsequent user decision — Facet identity
 
 The user chose logo concept A / Facet. Apply its approved mint/white/green asymmetric A to the title bar, Home, favicons and native app icons, with the same identity in offline exports. Preserve existing typography, pure-black styling and compact layout. The original concept studies remain a design record.
+
+## Subsequent user decision — named encoding comparison pairs
+
+On 2026-11-06 the user supplied a folder containing `src_01` / `final_01` through frame 04 and requested support for common anime encoding comparison names, including `src_01` / `filter_01` and `src(a)` / `out(b)`. A single folder or clearly named selected files should form source/output columns with matched scene rows; source/reference should initialize A and output/filter should initialize B. This supersedes the one-scene rule for clearly named pairs. Unrelated selected images retain the existing one-scene behavior, and multi-folder release matching retains exact-stem precedence. Ambiguous candidates and missing cells remain explicit.

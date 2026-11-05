@@ -12,7 +12,7 @@ export function runCommand(id: string) {
     quit: () => void controlWindow('close').catch((e) => w.notify(String(e))),
     openImages: () => void w.choose(),
     openFolders: () => void w.choose(true),
-    append: () => void w.choose(w.matrix?.sources[0].kind === 'folder', true),
+    append: () => void w.choose(w.matrix?.sources[0].kind !== 'file', true),
     sources: () => {
       w.sourceBrowser = true;
     },
