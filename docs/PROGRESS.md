@@ -4,7 +4,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 ## Current position
 
-- Updated: 2026-11-04.
+- Updated: 2026-11-05.
 - Branch: `main`.
 - The trailer is published in the GitHub README; its standalone source and the user's saved video live in the sibling Desktop folder `Ayori_trailer`.
 - The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
@@ -369,3 +369,9 @@ No further implementation task from the current request remains. Linux/AppImage 
 - GitHub recognizes the release GIF as an animated image. The served bytes, decoded frames, duration and infinite-loop metadata match the reviewed local preview. Public MP4/GIF downloads were checksum-verified. Verification used GitHub's Markdown API, live HTML, image decoding and local visual review; direct browser playback on GitHub was not inspected in this pass.
 - The user's saved video and editable project are preserved in the separate Desktop folder, with a clean local source repository and working persistent preview. The old nested project and loose Desktop MP4 paths no longer exist. The application update changes documentation only; application code, native assets, published executable, release tag and dependency lockfiles are unchanged. No new application build or CI result is claimed.
 - Requested README publication and project relocation are complete. GitHub cannot force MP4 autoplay or detect a first visit inside a README; the full-length silent GIF supplies automatic looping subject to visitor animation preferences. Existing platform/hardware qualification limits remain unchanged.
+
+### 2026-11-05 — GitHub Social Preview asset adjusted and verified
+
+- Generated the 1280×640 (2:1 aspect ratio) GitHub Social Preview image based on the repository's brand identity and README banner vector source.
+- Verified exact 1280×640 dimensions, 275,645 byte file size (well within GitHub's 1 MB limit), balanced vertical spacing (158 px top/bottom margins), safe zone compliance, subtle ambient glow, and zero corner clipping artifacts.
+- Created `docs/images/social-preview.svg` and `docs/images/social-preview.png` in the repository, and delivered the adjusted PNG directly to the user's Downloads directory at `C:\Users\Yuui\Downloads\Ayori-social-preview.png` (along with the centered card alternative `Ayori-social-preview-card.png`).
