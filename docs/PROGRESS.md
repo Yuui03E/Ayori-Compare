@@ -5,8 +5,8 @@ This is the current handoff record. Read it before making changes and update it 
 ## Current position
 
 - Updated: 2026-11-06.
-- Branch: `codex/filename-pairing`.
-- Named source/output comparisons are implemented and verified locally. `releases/Ayori.exe` is the new **8,553,472-byte** build; the public v0.1.0 executable remains unchanged.
+- Branch: `main`.
+- Named source/output comparison code is published on GitHub main and verified locally. `releases/Ayori.exe` is the new **8,553,472-byte** local build; the public v0.1.0 executable remains unchanged, per the user's source-only upload request.
 - The trailer is published in the GitHub README; its standalone source and the user's saved video live in the sibling Desktop folder `Ayori_trailer`.
 - The requested large collections, 53 editable keyboard actions, descriptive hover help and richer UI are complete and verified in the final packaged Windows app. The original eight-source product limit is superseded; only the resident working set remains bounded at eight. Linux validation remains deferred.
 - Baseline commits: `65a3f49` (original specifications), `ae8aa12` (requirements review).
@@ -38,7 +38,7 @@ This is the current handoff record. Read it before making changes and update it 
 
 The latest requested feature is complete: a folder containing `src_01` / `final_01` through frame 04 becomes two columns and four scenes, with source first for A and output second for B. Clearly named selected files also form matched scenes; unrelated files retain single-scene alternatives. Multi-folder release matching, bounded residency, exact source samples, sparse cells and stale-work safeguards remain intact. See the 2026-11-06 entries for supported naming conventions and verification.
 
-New local portable app: `releases/Ayori.exe`, **8,553,472 bytes**, SHA-256 `14ea8e211b9a647304458ae9c0018287178b303fe5b93c14d69db49a7b0bef3a`. Source changes are on `codex/filename-pairing`; neither this code nor executable has been published. Dependencies/build output have been recreated locally for verification and remain ignored.
+New local portable app: `releases/Ayori.exe`, **8,553,472 bytes**, SHA-256 `14ea8e211b9a647304458ae9c0018287178b303fe5b93c14d69db49a7b0bef3a`. Source changes are published on GitHub `main` in `e215478`; this executable remains local. Dependencies/build output have been recreated locally for verification and remain ignored.
 
 Current released executable: [Ayori v0.1.0](https://github.com/Yuui03E/Ayori-Compare/releases/tag/v0.1.0), **8,501,248 bytes**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`. The preserved local app is in the sibling `Ayori Local` folder. Final packaged validation, the Facet identity and publication evidence are recorded in the dated entries below. Generated build caches were removed during source cleanup; run `npm ci` before rebuilding.
 
@@ -396,3 +396,10 @@ No further implementation task from the current request remains. Linux/AppImage 
 - Visually inspected the actual Windows Split comparison with `src_04.webp` on A and `final_04.webp` on B, and the updated Home guidance. The native folder picker opens; full picker selection was not completed after its target window changed/closed during automation. Single-folder backend commands and product drag/drop imports are verified. Existing picker implementation is unchanged.
 - Final checks: **28 Rust + 37 frontend tests**, strict all-target/all-feature Clippy, Rust formatting, frontend/offline builds and diff whitespace checks pass. Both lockfiles remain tracked and unchanged. No new timing/memory benchmark, Linux/hardware qualification or public release is claimed.
 - Requested filename-pairing fix is complete locally. Next: review or publish this branch/build when requested; the public v0.1.0 download and preserved sibling app still contain the preceding version.
+
+### 2026-11-06 — Updated codebase published; release executable unchanged
+
+- The user authorized uploading only the codebase to `Yuui03E/Ayori-Compare`. Fast-forwarded local `main` to the verified filename-pairing commit `e215478bc80c05003f882edef2f13b39902de1f4` and pushed it without replacing remote history. The pending social-preview source assets were included; private frames, generated exports/profiles, build output and the new executable remain untracked and were not uploaded.
+- Verified the remote main commit and the public GitHub API's `src-tauri/src/named_series.rs` blob (`128b12b6b83b003cef287388b33a951488b39802`) against the local source. Both lockfiles remain tracked. No application code changed after the previously recorded 28 Rust / 37 frontend and packaged checks, so no duplicate test/build run was needed.
+- The existing `v0.1.0` tag and release assets are unchanged. GitHub still reports `Ayori.exe` as **8,501,248 bytes**, SHA-256 `45392c68b09081d1173347e85aa956c041256ef612bce378398c23b414432490`; the trailer assets retain their previously verified sizes/digests. No release was created or updated. No new remote CI pass is claimed.
+- Requested source-only upload is complete. The new portable app remains available locally; publishing it requires a later user request.
